@@ -9,7 +9,7 @@ Templates Status:
 - spec-template.md: ✅ (Compatible)
 - tasks-template.md: ✅ (Compatible)
 -->
-# Constituição do Projeto X (Bot-Scraper)
+# Constituição do (Bot-Scraper)
 
 ## Princípios Fundamentais
 
