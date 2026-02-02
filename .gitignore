@@ -1,0 +1,31 @@
+# Node.js
+node_modules/
+dist/
+build/
+*.log
+.env*
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+
+# Docker
+.dockerignore
+
+# Prisma
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# Frontend
+frontend/dist/
+frontend/build/
+
+# Backend
+backend/dist/
+backend/build/

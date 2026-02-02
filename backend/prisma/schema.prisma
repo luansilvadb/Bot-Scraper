@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BotStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+}
+
+enum ProxyProtocol {
+  HTTP
+  HTTPS
+  SOCKS5
+}
+
+enum ProductStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  POSTED
+}
+
+model Bot {
+  id            String           @id @default(uuid())
+  name          String
+  targetUrl     String
+  affiliateTag  String
+  telegramToken String
+  chatId        String
+  scheduleCron  String
+  status        BotStatus        @default(ACTIVE)
+  proxyId       String?
+  proxy         Proxy?           @relation(fields: [proxyId], references: [id])
+  products      ScrapedProduct[]
+  createdAt     DateTime         @default(now())
+}
+
+model Proxy {
+  id          String        @id @default(uuid())
+  host        String
+  port        Int
+  username    String?
+  password    String?
+  protocol    ProxyProtocol @default(HTTP)
+  status      String        @default("ONLINE") // ONLINE, OFFLINE
+  lastChecked DateTime?
+  bots        Bot[]
+}
+
+model ScrapedProduct {
+  id                 String        @id @default(uuid())
+  asin               String        @unique
+  title              String
+  currentPrice       Float
+  originalPrice      Float
+  discountPercentage Int
+  imageUrl           String
+  productUrl         String
+  status             ProductStatus @default(PENDING_APPROVAL)
+  botId              String?
+  bot                Bot?          @relation(fields: [botId], references: [id])
+  foundAt            DateTime      @default(now())
+  expiresAt          DateTime?
+}
+
+model SystemSetting {
+  key   String @id
+  value String
+}

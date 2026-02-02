@@ -1,0 +1,86 @@
+openapi: 3.0.0
+info:
+  title: Affiliate Bot Platform API
+  version: 1.0.0
+paths:
+  /auth/login:
+    post:
+      summary: Admin login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password: { type: string }
+      responses:
+        '201':
+          description: Returns functionality token (JWT or Session)
+  
+  /bots:
+    get:
+      summary: List all bots
+      responses:
+        '200':
+          description: List of bots with status
+    post:
+      summary: Create a new bot
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBotDto'
+  
+  /bots/{id}:
+    patch:
+      summary: Update bot (e.g., Pause/Resume)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [ACTIVE, PAUSED] }
+                scheduleCron: { type: string }
+    delete:
+      summary: Delete a bot
+  
+  /products/approval:
+    get:
+      summary: Get items pending approval
+      responses:
+        '200':
+          description: List of high-discount items
+  
+  /products/{id}/approve:
+    post:
+      summary: Approve an item for posting
+  
+  /products/{id}/reject:
+    post:
+      summary: Reject an item
+  
+  /stats:
+    get:
+      summary: Dashboard metrics
+      responses:
+        '200':
+          description: { scrapedCount: 100, postedCount: 10, etc }
+
+components:
+  schemas:
+    CreateBotDto:
+      type: object
+      properties:
+        name: { type: string }
+        targetUrl: { type: string }
+        affiliateTag: { type: string }
+        telegramToken: { type: string }
+        chatId: { type: string }
+        scheduleCron: { type: string }
+        proxyId: { type: string }

@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-password}
+      POSTGRES_DB: ${DATABASE_NAME:-bot_scraper}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" # Standard port for DB
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379" # Standard port for Redis
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USER:-postgres}:${DATABASE_PASSWORD:-password}@db:5432/${DATABASE_NAME:-bot_scraper}?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+      ADMIN_CHAT_ID: ${ADMIN_CHAT_ID}
+      PORT: 3000
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "30001:3000" # Custom security port for Backend
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    restart: always
+    environment:
+      VITE_API_URL: http://localhost:30001
+      VITE_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+    ports:
+      - "8080:80" # Custom security port for Frontend
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
