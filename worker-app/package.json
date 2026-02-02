@@ -1,0 +1,52 @@
+{
+    "name": "bot-scraper-worker",
+    "version": "1.0.0",
+    "description": "Bot-Scraper Worker Desktop Application",
+    "main": "dist-electron/main.js",
+    "scripts": {
+        "dev": "electron-vite dev",
+        "build": "electron-vite build",
+        "build:win": "electron-vite build && electron-builder --win",
+        "preview": "electron-vite preview",
+        "lint": "eslint .",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@fluentui/react-components": "^9.46.0",
+        "@fluentui/react-icons": "^2.0.224",
+        "axios": "^1.13.4",
+        "electron-store": "^8.1.0",
+        "playwright": "^1.40.0",
+        "socket.io-client": "^4.7.2"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.0",
+        "@types/react": "^18.2.45",
+        "@types/react-dom": "^18.2.18",
+        "@vitejs/plugin-react": "^4.2.1",
+        "electron": "^40.1.0",
+        "electron-builder": "^26.7.0",
+        "electron-vite": "^5.0.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "typescript": "^5.3.3",
+        "vite": "^7.3.1"
+    },
+    "build": {
+        "appId": "com.botscraper.worker",
+        "productName": "Bot-Scraper Worker",
+        "directories": {
+            "output": "release"
+        },
+        "win": {
+            "target": [
+                "nsis"
+            ],
+            "icon": "build/icon.ico"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true
+        }
+    }
+}

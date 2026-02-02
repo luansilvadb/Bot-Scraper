@@ -1,0 +1,177 @@
+/**
+ * ConfigWindow - Styles for configuration form
+ * 
+ * Supports both standalone (glass-panel) and embedded (tray) modes.
+ * Uses unified design tokens from design-tokens.css.
+ */
+
+.config-window {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Standalone mode - with glass background */
+.config-window.glass-panel {
+    padding: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: var(--radius-lg);
+}
+
+/* Embedded mode - no extra styling (parent handles it) */
+.config-window.embedded {
+    padding: var(--space-md);
+    background: transparent;
+}
+
+.config-window.loading {
+    justify-content: center;
+    align-items: center;
+}
+
+.config-card {
+    height: 100%;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column;
+}
+
+.form-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    margin: var(--space-md) 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Embedded mode - tighter spacing */
+.config-window.embedded .form-content {
+    margin: var(--space-sm) 0;
+    gap: var(--space-sm);
+}
+
+/* Custom input styles removed in favor of Fluent UI */
+
+.switches {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+}
+
+/* Error display */
+.error-list {
+    background: var(--color-error-bg);
+    border-left: 3px solid var(--color-error);
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+}
+
+.error-list .error-text {
+    display: block;
+    color: var(--color-error);
+}
+
+/* Footer actions */
+.footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border);
+}
+
+.config-window.embedded .footer-actions {
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+}
+
+/* Connection state visual feedback */
+.config-window.connecting {
+    pointer-events: none;
+    opacity: 0.9;
+}
+
+/* Success animation */
+@keyframes successPulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.config-window.success {
+    animation: successPulse 300ms ease;
+}
+
+/* Error shake animation */
+.config-window.error .form-content {
+    animation: shake 400ms ease;
+}
+
+/* Checkmark animation for success state */
+.success-feedback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    height: 100%;
+    animation: fadeIn var(--transition-normal);
+}
+
+.success-checkmark {
+    width: 64px;
+    height: 64px;
+}
+
+.success-checkmark svg {
+    width: 100%;
+    height: 100%;
+}
+
+.success-checkmark .checkmark-circle {
+    stroke: var(--color-success);
+    stroke-width: 2;
+    stroke-dasharray: 157;
+    stroke-dashoffset: 157;
+    animation: circleIn 400ms ease-out forwards;
+}
+
+.success-checkmark .checkmark-path {
+    stroke: var(--color-success);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    stroke-dasharray: 50;
+    stroke-dashoffset: 50;
+    animation: checkmark 300ms ease-out 200ms forwards;
+}
+
+@keyframes circleIn {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes checkmark {
+    to {
+        stroke-dashoffset: 0;
+    }
+}

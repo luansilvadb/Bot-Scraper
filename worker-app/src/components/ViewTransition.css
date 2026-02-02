@@ -1,0 +1,58 @@
+/**
+ * ViewTransition - CSS animations for view switching
+ * 
+ * Provides smooth 250ms ease transitions between views.
+ * Uses GPU-accelerated transforms for 60fps performance.
+ */
+
+.view-transition-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.view-panel {
+    position: absolute;
+    inset: 0;
+    transition:
+        transform var(--transition-normal),
+        opacity var(--transition-normal);
+    will-change: transform, opacity;
+}
+
+/* Active view - fully visible */
+.view-panel.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    z-index: 1;
+}
+
+/* Inactive left - slides out to left (when switching to config) */
+.view-panel.inactive-left {
+    opacity: 0;
+    transform: translateX(-30px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Inactive right - slides out to right (when switching to status) */
+.view-panel.inactive-right {
+    opacity: 0;
+    transform: translateX(30px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .view-panel {
+        transition: opacity var(--transition-fast);
+    }
+
+    .view-panel.inactive-left,
+    .view-panel.inactive-right {
+        transform: translateX(0);
+    }
+}
