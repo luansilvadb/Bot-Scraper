@@ -25,7 +25,7 @@ const useStyles = makeStyles({
 interface RegisterWorkerModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSuccess: (data: { token: string }) => void;
+    onSuccess: (data: { token: string; name?: string }) => void;
 }
 
 export function RegisterWorkerModal({ open, onOpenChange, onSuccess }: RegisterWorkerModalProps) {
@@ -40,7 +40,7 @@ export function RegisterWorkerModal({ open, onOpenChange, onSuccess }: RegisterW
             { name },
             {
                 onSuccess: (data) => {
-                    onSuccess(data);
+                    onSuccess({ ...data, name: name.trim() });
                     onOpenChange(false);
                     setName('');
                 },

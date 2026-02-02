@@ -153,6 +153,40 @@ export class WorkersService {
         }
     }
 
+    /**
+     * Regenerate token for an existing worker.
+     * Immediately invalidates the old token.
+     */
+    async regenerateToken(id: string) {
+        const worker = await this.findOne(id); // Ensure exists
+
+        const newToken = randomBytes(32).toString('hex');
+
+        this.logger.log(`Regenerating token for worker ${worker.name} (${id})`);
+
+        const updated = await this.prisma.localWorker.update({
+            where: { id },
+            data: {
+                token: newToken,
+                updatedAt: new Date(),
+            },
+        });
+
+        return {
+            token: updated.token,
+            regeneratedAt: updated.updatedAt.toISOString(),
+        };
+    }
+
+    /**
+     * Get the current token for a worker.
+     * Use sparingly - prefer regeneration for lost tokens.
+     */
+    async getToken(id: string) {
+        const worker = await this.findOne(id); // Ensure exists
+        return { token: worker.token };
+    }
+
     async delete(id: string) {
         return this.prisma.localWorker.delete({
             where: { id },

@@ -95,6 +95,53 @@ export function useDeleteWorker() {
     });
 }
 
+// Token Management Types
+export interface RegenerateTokenResponse {
+    token: string;
+    regeneratedAt: string;
+}
+
+export interface GetTokenResponse {
+    token: string;
+}
+
+/**
+ * Hook to regenerate a worker's token.
+ * The old token is immediately invalidated.
+ */
+export function useRegenerateToken() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const { data } = await api.post<RegenerateTokenResponse>(
+                `/api/workers/${id}/regenerate-token`
+            );
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: workerKeys.lists() });
+        },
+    });
+}
+
+/**
+ * Hook to get a worker's current token.
+ * Use sparingly - prefer regeneration for lost tokens.
+ */
+export function useGetWorkerToken(id: string, options: { enabled?: boolean } = {}) {
+    return useQuery({
+        queryKey: [...workerKeys.detail(id), 'token'] as const,
+        queryFn: async () => {
+            const { data } = await api.get<GetTokenResponse>(`/api/workers/${id}/token`);
+            return data;
+        },
+        enabled: options.enabled ?? true,
+        staleTime: 0, // Always refetch when requested
+        gcTime: 0, // Don't cache (sensitive data)
+    });
+}
+
 // Tasks
 export interface ScrapingTask {
     id: string;
