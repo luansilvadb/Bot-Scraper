@@ -6,12 +6,6 @@ import {
     Spinner,
     Input,
     Text,
-    Toaster,
-    useToastController,
-    useId,
-    Toast,
-    ToastTitle,
-    ToastBody,
 } from '@fluentui/react-components';
 import {
     ArrowClockwise20Regular,
@@ -22,6 +16,7 @@ import { useState } from 'react';
 import { useWorkers } from './api';
 import { WorkerCard } from './WorkerCard';
 import { RegisterWorkerModal } from './RegisterWorkerModal';
+import { TokenModal } from './TokenModal';
 import { TaskQueue } from './TaskQueue';
 
 const useStyles = makeStyles({
@@ -67,11 +62,14 @@ const useStyles = makeStyles({
 
 export function WorkerList() {
     const styles = useStyles();
-    const toasterId = useId('worker-list-toaster');
-    const { dispatchToast } = useToastController(toasterId);
 
     const [search, setSearch] = useState('');
     const [isRegistering, setIsRegistering] = useState(false);
+
+    // Token modal state
+    const [tokenModalOpen, setTokenModalOpen] = useState(false);
+    const [registeredToken, setRegisteredToken] = useState('');
+    const [registeredWorkerName, setRegisteredWorkerName] = useState('');
 
     const { data: workers, isLoading, error, refetch } = useWorkers();
 
@@ -81,17 +79,18 @@ export function WorkerList() {
         w.networkInfo?.externalIp?.includes(search)
     ) || [];
 
-    const handleRegisterSuccess = (data: { token: string }) => {
-        dispatchToast(
-            <Toast>
-                <ToastTitle>Worker Registered</ToastTitle>
-                <ToastBody>
-                    Token: <strong>{data.token}</strong><br />
-                    Copy this token now! It won't be shown again.
-                </ToastBody>
-            </Toast>,
-            { intent: 'success', timeout: 10000 }
-        );
+    const handleRegisterSuccess = (data: { token: string; name?: string }) => {
+        // Open TokenModal instead of Toast
+        setRegisteredToken(data.token);
+        setRegisteredWorkerName(data.name || '');
+        setTokenModalOpen(true);
+    };
+
+    const handleTokenModalClose = () => {
+        setTokenModalOpen(false);
+        setRegisteredToken('');
+        setRegisteredWorkerName('');
+        refetch(); // Refresh worker list
     };
 
     if (error) {
@@ -105,8 +104,6 @@ export function WorkerList() {
 
     return (
         <div className={styles.container}>
-            <Toaster toasterId={toasterId} />
-
             <div className={styles.header}>
                 <Title3>Local Workers</Title3>
                 <div className={styles.controls}>
@@ -162,6 +159,14 @@ export function WorkerList() {
                 open={isRegistering}
                 onOpenChange={setIsRegistering}
                 onSuccess={handleRegisterSuccess}
+            />
+
+            <TokenModal
+                open={tokenModalOpen}
+                token={registeredToken}
+                workerName={registeredWorkerName}
+                onClose={handleTokenModalClose}
+                title="Worker Registered Successfully"
             />
         </div>
     );
