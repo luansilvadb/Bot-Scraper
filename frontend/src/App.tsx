@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { BotList } from './features/bots/BotList';
-import { ProxyManager } from './features/proxy/ProxyManager';
-import { ApprovalGrid } from './features/approval/ApprovalGrid';
+import { ProductList } from './features/products/ProductList';
 import { SettingsPage } from './features/settings/SettingsPage';
+import { WorkerList } from './features/workers/WorkerList';
 
 function App() {
   return (
@@ -12,8 +12,8 @@ function App() {
         <Route path="/" element={<AppShell />}>
           <Route index element={<div>Dashboard Home</div>} />
           <Route path="bots" element={<BotList />} />
-          <Route path="approval" element={<ApprovalGrid />} />
-          <Route path="proxies" element={<ProxyManager />} />
+          <Route path="workers" element={<WorkerList />} />
+          <Route path="approval" element={<ProductList />} />
           <Route path="system" element={<SettingsPage />} />
         </Route>
       </Routes>
@@ -22,3 +22,4 @@ function App() {
 }
 
 export default App;
+

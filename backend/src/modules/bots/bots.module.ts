@@ -6,8 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { ScrapingModule } from '../scraping/scraping.module';
 
 @Module({
-    imports: [ScrapingModule],
-    controllers: [BotsController],
-    providers: [BotsService, PrismaService, ConfigService],
+  imports: [ScrapingModule],
+  controllers: [BotsController],
+  providers: [BotsService, ConfigService],
 })
-export class BotsModule { }
+export class BotsModule {}

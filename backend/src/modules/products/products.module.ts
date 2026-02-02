@@ -6,8 +6,8 @@ import { TelegramModule } from '../telegram/telegram.module';
 import { ConfigService } from '@nestjs/config';
 
 @Module({
-    imports: [TelegramModule],
-    controllers: [ProductsController],
-    providers: [ProductsService, PrismaService, ConfigService],
+  imports: [TelegramModule],
+  controllers: [ProductsController],
+  providers: [ProductsService, ConfigService],
 })
-export class ProductsModule { }
+export class ProductsModule {}

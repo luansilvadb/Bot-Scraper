@@ -1,0 +1,275 @@
+openapi: 3.0.3
+info:
+  title: Proxies API
+  version: 1.0.0
+  description: CRUD endpoints for Proxy entity
+
+paths:
+  /proxies:
+    get:
+      summary: List all proxies
+      tags: [Proxies]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ONLINE, OFFLINE]
+        - name: protocol
+          in: query
+          schema:
+            $ref: '#/components/schemas/ProxyProtocol'
+      responses:
+        '200':
+          description: Paginated list of proxies
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Proxy'
+
+    post:
+      summary: Create a new proxy
+      tags: [Proxies]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProxyDto'
+      responses:
+        '201':
+          description: Proxy created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /proxies/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get a proxy by ID
+      tags: [Proxies]
+      responses:
+        '200':
+          description: Proxy details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Proxy'
+        '404':
+          description: Proxy not found
+
+    patch:
+      summary: Update a proxy
+      tags: [Proxies]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProxyDto'
+      responses:
+        '200':
+          description: Proxy updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Proxy'
+        '404':
+          description: Proxy not found
+
+    delete:
+      summary: Delete a proxy
+      tags: [Proxies]
+      responses:
+        '200':
+          description: Proxy deleted
+        '404':
+          description: Proxy not found
+
+  /proxies/{id}/check:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    post:
+      summary: Check proxy health
+      tags: [Proxies]
+      responses:
+        '200':
+          description: Health check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [ONLINE, OFFLINE]
+                      latencyMs:
+                        type: integer
+
+components:
+  schemas:
+    ProxyProtocol:
+      type: string
+      enum: [HTTP, HTTPS, SOCKS5]
+
+    Proxy:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        host:
+          type: string
+        port:
+          type: integer
+        username:
+          type: string
+          nullable: true
+        password:
+          type: string
+          nullable: true
+          description: Not returned in responses
+        protocol:
+          $ref: '#/components/schemas/ProxyProtocol'
+        status:
+          type: string
+          enum: [ONLINE, OFFLINE]
+        lastChecked:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateProxyDto:
+      type: object
+      required:
+        - host
+        - port
+      properties:
+        host:
+          type: string
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        protocol:
+          $ref: '#/components/schemas/ProxyProtocol'
+        username:
+          type: string
+        password:
+          type: string
+
+    UpdateProxyDto:
+      type: object
+      properties:
+        host:
+          type: string
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        protocol:
+          $ref: '#/components/schemas/ProxyProtocol'
+        username:
+          type: string
+          nullable: true
+        password:
+          type: string
+          nullable: true
+
+    PaginatedResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
+            totalPages:
+              type: integer
+
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+
+    ApiError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object

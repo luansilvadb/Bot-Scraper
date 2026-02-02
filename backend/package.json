@@ -25,6 +25,9 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.12",
+    "@nestjs/schedule": "^6.1.0",
+    "@nestjs/websockets": "^11.1.12",
     "@playwright/test": "^1.58.1",
     "@prisma/client": "^6.19.2",
     "axios": "^1.13.4",
@@ -80,5 +83,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "prisma": {
+    "seed": "npx ts-node prisma/seed.ts"
   }
 }

@@ -1,19 +1,39 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { SettingsService } from './settings.service';
+import { UpsertSettingDto, SettingQueryDto } from './dto';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('settings')
 @UseGuards(AuthGuard)
 export class SettingsController {
-    constructor(private readonly settingsService: SettingsService) { }
+  constructor(private readonly settingsService: SettingsService) {}
 
-    @Get()
-    findAll() {
-        return this.settingsService.findAll();
-    }
+  @Get()
+  findAll(@Query() query: SettingQueryDto) {
+    return this.settingsService.findAll(query);
+  }
 
-    @Post()
-    upsert(@Body() data: { key: string; value: string }) {
-        return this.settingsService.upsert(data.key, data.value);
-    }
+  @Get(':key')
+  findOne(@Param('key') key: string) {
+    return this.settingsService.findByKey(key);
+  }
+
+  @Post()
+  upsert(@Body() dto: UpsertSettingDto) {
+    return this.settingsService.upsert(dto);
+  }
+
+  @Delete(':key')
+  remove(@Param('key') key: string) {
+    return this.settingsService.remove(key);
+  }
 }

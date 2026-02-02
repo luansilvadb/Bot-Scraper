@@ -1,0 +1,205 @@
+openapi: 3.0.3
+info:
+  title: Settings API
+  version: 1.0.0
+  description: CRUD endpoints for SystemSetting entity
+
+paths:
+  /settings:
+    get:
+      summary: List all settings
+      tags: [Settings]
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search in setting key
+      responses:
+        '200':
+          description: List of all settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Setting'
+
+    post:
+      summary: Create or update a setting (upsert)
+      tags: [Settings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertSettingDto'
+      responses:
+        '200':
+          description: Setting created or updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Setting'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /settings/{key}:
+    parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: '^[a-zA-Z0-9_]+$'
+
+    get:
+      summary: Get a setting by key
+      tags: [Settings]
+      responses:
+        '200':
+          description: Setting value
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Setting'
+        '404':
+          description: Setting not found
+
+    put:
+      summary: Update a setting value
+      tags: [Settings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - value
+              properties:
+                value:
+                  type: string
+      responses:
+        '200':
+          description: Setting updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Setting'
+        '404':
+          description: Setting not found
+
+    delete:
+      summary: Delete a setting
+      tags: [Settings]
+      responses:
+        '200':
+          description: Setting deleted
+        '404':
+          description: Setting not found
+        '403':
+          description: Cannot delete reserved system setting
+
+  /settings/bulk:
+    put:
+      summary: Bulk update settings
+      tags: [Settings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                settings:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/UpsertSettingDto'
+      responses:
+        '200':
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      updated:
+                        type: integer
+                      created:
+                        type: integer
+
+components:
+  schemas:
+    Setting:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Unique identifier for the setting
+        value:
+          type: string
+          description: Setting value
+
+    UpsertSettingDto:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          pattern: '^[a-zA-Z0-9_]+$'
+          minLength: 1
+          maxLength: 100
+          description: Alphanumeric key with underscores
+        value:
+          type: string
+          minLength: 1
+          description: Setting value
+
+    ApiError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object

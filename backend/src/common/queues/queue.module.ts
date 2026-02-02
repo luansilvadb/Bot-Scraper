@@ -8,15 +8,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         const redisUrl = configService.get<string>('REDIS_URL');
-        if (redisUrl) {
-          return { connection: { url: redisUrl } };
+        if (!redisUrl) {
+          throw new Error('REDIS_URL environment variable is required for cloud-managed infrastructure');
         }
-        return {
-          connection: {
-            host: configService.get<string>('REDIS_HOST', 'localhost'),
-            port: configService.get<number>('REDIS_PORT', 6379),
-          },
-        };
+        return { connection: { url: redisUrl } };
       },
       inject: [ConfigService],
     }),

@@ -1,0 +1,283 @@
+openapi: 3.0.3
+info:
+  title: Bots API
+  version: 1.0.0
+  description: CRUD endpoints for Bot entity
+
+paths:
+  /bots:
+    get:
+      summary: List all bots
+      tags: [Bots]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/BotStatus'
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search in bot name
+      responses:
+        '200':
+          description: Paginated list of bots
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Bot'
+
+    post:
+      summary: Create a new bot
+      tags: [Bots]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBotDto'
+      responses:
+        '201':
+          description: Bot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /bots/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Get a bot by ID
+      tags: [Bots]
+      responses:
+        '200':
+          description: Bot details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Bot'
+        '404':
+          description: Bot not found
+
+    patch:
+      summary: Update a bot
+      tags: [Bots]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBotDto'
+      responses:
+        '200':
+          description: Bot updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Bot'
+        '404':
+          description: Bot not found
+
+    delete:
+      summary: Delete a bot
+      tags: [Bots]
+      responses:
+        '200':
+          description: Bot deleted
+        '404':
+          description: Bot not found
+
+components:
+  schemas:
+    BotStatus:
+      type: string
+      enum: [ACTIVE, PAUSED, ERROR]
+
+    Bot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        targetUrl:
+          type: string
+          format: uri
+        affiliateTag:
+          type: string
+        telegramToken:
+          type: string
+        chatId:
+          type: string
+        scheduleCron:
+          type: string
+        status:
+          $ref: '#/components/schemas/BotStatus'
+        proxyId:
+          type: string
+          format: uuid
+          nullable: true
+        proxy:
+          $ref: '#/components/schemas/ProxyRef'
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ProxyRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        host:
+          type: string
+        port:
+          type: integer
+
+    CreateBotDto:
+      type: object
+      required:
+        - name
+        - targetUrl
+        - affiliateTag
+        - telegramToken
+        - chatId
+        - scheduleCron
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        targetUrl:
+          type: string
+          format: uri
+        affiliateTag:
+          type: string
+        telegramToken:
+          type: string
+        chatId:
+          type: string
+        scheduleCron:
+          type: string
+        status:
+          $ref: '#/components/schemas/BotStatus'
+        proxyId:
+          type: string
+          format: uuid
+
+    UpdateBotDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        targetUrl:
+          type: string
+          format: uri
+        affiliateTag:
+          type: string
+        telegramToken:
+          type: string
+        chatId:
+          type: string
+        scheduleCron:
+          type: string
+        status:
+          $ref: '#/components/schemas/BotStatus'
+        proxyId:
+          type: string
+          format: uuid
+          nullable: true
+
+    PaginatedResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
+            totalPages:
+              type: integer
+
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+
+    ApiError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string

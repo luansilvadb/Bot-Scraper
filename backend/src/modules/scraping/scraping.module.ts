@@ -9,20 +9,19 @@ import { QueueModule } from '../../common/queues/queue.module';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Module({
-    imports: [
-        QueueModule,
-        BullModule.registerQueue({
-            name: 'scraping',
-        }),
-    ],
-    providers: [
-        ScrapingService,
-        PlaywrightService,
-        AmazonScraper,
-        ProfitFilter,
-        ScrapingProcessor,
-        PrismaService
-    ],
-    exports: [ScrapingService, PlaywrightService],
+  imports: [
+    QueueModule,
+    BullModule.registerQueue({
+      name: 'scraping',
+    }),
+  ],
+  providers: [
+    ScrapingService,
+    PlaywrightService,
+    AmazonScraper,
+    ProfitFilter,
+    ScrapingProcessor,
+  ],
+  exports: [ScrapingService, PlaywrightService],
 })
-export class ScrapingModule { }
+export class ScrapingModule {}

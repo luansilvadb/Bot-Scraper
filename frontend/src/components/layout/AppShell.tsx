@@ -13,7 +13,8 @@ import {
     Apps24Regular,
     Settings24Regular,
     Globe24Regular,
-    Flash24Regular
+    Flash24Regular,
+    Desktop24Regular
 } from '@fluentui/react-icons';
 import { NavLink, Outlet } from 'react-router-dom';
 
@@ -84,8 +85,8 @@ export const AppShell: React.FC = () => {
     const navItems = [
         { label: 'Dashboard', icon: <Apps24Regular />, to: '/' },
         { label: 'Bots', icon: <Bot24Regular />, to: '/bots' },
+        { label: 'Workers', icon: <Desktop24Regular />, to: '/workers' },
         { label: 'Approval Center', icon: <ShieldCheckmark24Regular />, to: '/approval' },
-        { label: 'Proxies', icon: <Globe24Regular />, to: '/proxies' },
         { label: 'System', icon: <Settings24Regular />, to: '/system' },
     ];
 

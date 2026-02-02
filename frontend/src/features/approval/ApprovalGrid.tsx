@@ -31,7 +31,8 @@ export const ApprovalGrid: React.FC = () => {
         queryKey: ['pending-products'],
         queryFn: async () => {
             const response = await api.get('/products/pending');
-            return response.data;
+            // Extract from envelope: { success: true, data: [...] }
+            return response.data?.data ?? response.data ?? [];
         }
     });
 
