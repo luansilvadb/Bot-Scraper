@@ -30,8 +30,7 @@ import { TaskStatus, WorkerStatus } from './enums';
 })
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
 export class WorkersGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(WorkersGateway.name);
 
   @WebSocketServer()
@@ -40,38 +39,48 @@ export class WorkersGateway
   constructor(
     private readonly tasksService: TasksService,
     private readonly workersService: WorkersService,
-  ) {}
+  ) { }
 
   async handleConnection(client: Socket) {
+    this.logger.log(`Connection attempt from ${client.handshake.address} (ID: ${client.id})`);
+    this.logger.debug(`Handshake auth: ${JSON.stringify(client.handshake.auth)}`);
+    this.logger.debug(`Handshake query: ${JSON.stringify(client.handshake.query)}`);
+
     try {
-      const token = client.handshake.query.token as string;
+      const token = (client.handshake.auth?.token || client.handshake.query?.token) as string;
       if (!token) {
+        this.logger.warn(`Connection rejected: Missing auth token from ${client.handshake.address}`);
         throw new WsException('Missing auth token');
       }
 
+      this.logger.debug(`Token received: ${token.substring(0, 10)}...`);
+
       const worker = await this.workersService.findByToken(token);
       if (!worker) {
+        this.logger.warn(`Connection rejected: Invalid auth token from ${client.handshake.address}`);
+        this.logger.debug(`Token searched: ${token}`);
+        const existingWorkers = await this.workersService.findAll();
+        this.logger.debug(`Available workers: ${existingWorkers.length}`);
+        existingWorkers.forEach(w => this.logger.debug(`  - ${w.name}: ${w.token.substring(0, 10)}...`));
         throw new WsException('Invalid auth token');
       }
 
       this.logger.log(`Worker connected: ${worker.name} (${worker.id})`);
 
-      // Update status to CONNECTED
       await this.workersService.updateStatus(worker.id, WorkerStatus.CONNECTED);
 
-      // Send registration confirmation
       const payload: WorkerRegisteredPayload = {
         workerId: worker.id,
         serverTime: new Date().toISOString(),
         config: {
-          heartbeatInterval: 10000,
+          heartbeatInterval: 30000,
           taskTimeout: 60000,
         },
       };
       client.emit(WS_EVENTS.WORKER_REGISTERED, payload);
 
-      // Join room for this worker
       client.join(worker.id);
+      this.logger.log(`Worker ${worker.name} joined room ${worker.id}`);
     } catch (error: any) {
       this.logger.error(`Connection failed: ${error.message}`);
       client.disconnect();
@@ -79,14 +88,11 @@ export class WorkersGateway
   }
 
   async handleDisconnect(client: Socket) {
-    const token = client.handshake.query.token as string;
+    const token = (client.handshake.auth?.token || client.handshake.query?.token) as string;
     if (token) {
       const worker = await this.workersService.findByToken(token);
       if (worker) {
         this.logger.log(`Worker disconnected: ${worker.name}`);
-        // If it was gracefully disconnected, we set to DISCONNECTED.
-        // If it crashed, heartbeat timeout will eventually catch it.
-        // But for cleaner UI, we set it to DISCONNECTED immediately if socket closes.
         await this.workersService.updateStatus(
           worker.id,
           WorkerStatus.DISCONNECTED,
@@ -100,12 +106,7 @@ export class WorkersGateway
     @MessageBody() payload: WorkerHeartbeatDto,
     @ConnectedSocket() client: Socket,
   ) {
-    const token = client.handshake.query.token as string;
-    // Low-level debug log to avoid noise, but useful or tracing
-    this.logger.debug(
-      `Heartbeat from ${token ? 'worker' : 'unknown'} [${payload.status}]`,
-    );
-
+    const token = (client.handshake.auth?.token || client.handshake.query?.token) as string;
     const worker = await this.workersService.findByToken(token);
     if (worker) {
       await this.workersService.processHeartbeat(worker.id, payload);
@@ -114,19 +115,18 @@ export class WorkersGateway
 
   @SubscribeMessage(WS_EVENTS.NETWORK_CHANGED)
   async handleNetworkChanged(
-    @MessageBody() payload: any, // Using any or specific DTO part
+    @MessageBody() payload: any,
     @ConnectedSocket() client: Socket,
   ) {
-    const token = client.handshake.query.token as string;
+    const token = (client.handshake.auth?.token || client.handshake.query?.token) as string;
     if (token) {
       const worker = await this.workersService.findByToken(token);
       if (worker) {
         this.logger.log(
           `Network changed for worker ${worker.name}: ${payload.externalIp}`,
         );
-        // Reuse heartbeat logic or specific update
         await this.workersService.processHeartbeat(worker.id, {
-          status: 'connected' as any, // internal mapping will treat as connected/idle
+          status: 'idle',
           networkInfo: payload,
           stats: {
             tasksCompleted: worker.tasksCompletedCount,
@@ -138,9 +138,6 @@ export class WorkersGateway
     }
   }
 
-  /**
-   * Send a task to a specific worker
-   */
   async sendTaskToWorker(workerId: string, payload: TaskAssignedPayload) {
     this.server.to(workerId).emit(WS_EVENTS.TASK_ASSIGNED, payload);
     this.logger.log(`Assigned task ${payload.taskId} to worker ${workerId}`);
@@ -151,33 +148,50 @@ export class WorkersGateway
     @MessageBody() payload: TaskCompletedDto,
     @ConnectedSocket() client: Socket,
   ) {
-    this.logger.log(`Task ${payload.taskId} completed`);
+    this.logger.log(`Task ${payload.taskId} completed by worker ${client.id}`);
+    this.logger.debug(`Payload: ${JSON.stringify(payload, null, 2)}`);
 
     try {
-      await this.tasksService.saveResult(payload.taskId, {
-        ...payload.result,
-        taskId: payload.taskId,
-        scrapedAt: new Date(payload.completedAt),
-      });
+      // Normalize results - handle both single result and array of results
+      let results: any[] = [];
+      if (payload.results && Array.isArray(payload.results) && payload.results.length > 0) {
+        results = payload.results;
+        this.logger.log(`Task ${payload.taskId}: Received ${results.length} results`);
+      } else if (payload.result) {
+        results = [payload.result];
+        this.logger.log(`Task ${payload.taskId}: Received 1 result`);
+      } else {
+        this.logger.warn(`Task ${payload.taskId}: No results received!`);
+      }
 
-      // Update worker status back to CONNECTED if idle
-      const token = client.handshake.query.token as string;
+      if (results.length > 0) {
+        await this.tasksService.saveResults(payload.taskId, results.map(r => ({
+          ...r,
+          taskId: payload.taskId,
+          scrapedAt: new Date(payload.completedAt),
+        } as any)));
+        this.logger.log(`Task ${payload.taskId}: Results saved successfully`);
+      }
+
+      // Update worker stats and status
+      const token = (client.handshake.auth?.token || client.handshake.query?.token) as string;
       if (token) {
         const worker = await this.workersService.findByToken(token);
-        if (worker)
-          await this.workersService.updateStatus(
-            worker.id,
-            WorkerStatus.CONNECTED,
-          );
+        if (worker) {
+          await this.workersService.updateStatus(worker.id, WorkerStatus.CONNECTED);
+          await this.workersService.incrementTasksCompleted(worker.id);
+          this.logger.log(`Worker ${worker.name} status updated to CONNECTED and stats incremented`);
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
-        `Failed to save task result for ${payload.taskId}`,
-        error,
+        `Failed to save task result for ${payload.taskId}: ${error.message}`,
+        error.stack,
       );
       client.emit(WS_EVENTS.ERROR, {
         code: 'SAVE_FAILED',
         message: 'Failed to save task result',
+        details: error.message,
         timestamp: new Date().toISOString(),
       });
     }
@@ -189,16 +203,27 @@ export class WorkersGateway
     @ConnectedSocket() client: Socket,
   ) {
     this.logger.warn(`Task ${payload.taskId} failed: ${payload.error.message}`);
+    this.logger.debug(`Error details: ${JSON.stringify(payload.error)}`);
 
-    await this.tasksService.updateStatus(
-      payload.taskId,
-      TaskStatus.FAILED,
-      payload.error.message,
-    );
+    try {
+      await this.tasksService.updateStatus(
+        payload.taskId,
+        TaskStatus.FAILED,
+        payload.error.message,
+      );
 
-    // Update worker status back to CONNECTED?
-    // Depends on error type. If BLOCKED, worker updates via heartbeat logic (status: blocked).
-    // If just task specific error, worker goes back to idle.
-    // The worker logic sends heartbeat with 'currentTaskId' if busy.
+      // Update worker stats
+      const token = (client.handshake.auth?.token || client.handshake.query?.token) as string;
+      if (token) {
+        const worker = await this.workersService.findByToken(token);
+        if (worker) {
+          await this.workersService.updateStatus(worker.id, WorkerStatus.CONNECTED);
+          await this.workersService.incrementTasksFailed(worker.id);
+          this.logger.log(`Worker ${worker.name} stats updated after task failure`);
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Failed to process task failure for ${payload.taskId}: ${error.message}`);
+    }
   }
 }

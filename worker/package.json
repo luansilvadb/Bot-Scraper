@@ -4,23 +4,62 @@
     "description": "Local Worker for Amazon product scraping using residential IPs",
     "main": "dist/main.js",
     "scripts": {
-        "build": "tsc",
-        "start": "node dist/main.js",
-        "dev": "ts-node src/main.ts",
-        "lint": "eslint src/**/*.ts"
+        "build": "nest build",
+        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+        "start": "nest start",
+        "start:dev": "nest start --watch",
+        "start:debug": "nest start --debug --watch",
+        "start:prod": "node dist/main",
+        "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:cov": "jest --coverage",
+        "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+        "test:e2e": "jest --config ./test/jest-e2e.json"
     },
     "dependencies": {
-        "socket.io-client": "^4.7.4",
-        "playwright": "^1.58.1",
+        "@nestjs/common": "^11.1.12",
+        "@nestjs/config": "^4.0.2",
+        "@nestjs/core": "^11.1.12",
         "axios": "^1.6.7",
-        "dotenv": "^16.4.1"
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.3",
+        "dotenv": "^16.4.1",
+        "playwright": "^1.58.1",
+        "reflect-metadata": "^0.2.2",
+        "rxjs": "^7.8.2",
+        "socket.io-client": "^4.7.4"
     },
     "devDependencies": {
+        "@nestjs/cli": "^11.0.16",
+        "@nestjs/schematics": "^11.0.9",
+        "@nestjs/testing": "^11.1.12",
+        "@types/jest": "^30.0.0",
         "@types/node": "^20.11.16",
-        "typescript": "^5.3.3",
-        "ts-node": "^10.9.2"
+        "jest": "^30.2.0",
+        "node-windows": "^1.0.0-beta.8",
+        "ts-jest": "^29.4.6",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
     },
     "engines": {
         "node": ">=18.0.0"
+    },
+    "jest": {
+        "moduleFileExtensions": [
+            "js",
+            "json",
+            "ts"
+        ],
+        "rootDir": "src",
+        "testRegex": ".*\\.spec\\.ts$",
+        "transform": {
+            "^.+\\.(t|j)s$": "ts-jest"
+        },
+        "collectCoverageFrom": [
+            "**/*.(t|j)s"
+        ],
+        "coverageDirectory": "../coverage",
+        "testEnvironment": "node"
     }
 }

@@ -145,6 +145,10 @@ export class ScrapedProductData {
   @IsOptional()
   @IsString()
   asin: string | null;
+
+  @IsOptional()
+  @IsString()
+  productUrl?: string;
 }
 
 /**
@@ -157,7 +161,14 @@ export class TaskCompletedDto {
   @IsString()
   completedAt: string;
 
-  result: ScrapedProductData;
+  @IsOptional()
+  result?: ScrapedProductData;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ScrapedProductData)
+  results?: ScrapedProductData[];
 
   metrics: {
     scrapeDurationMs: number;

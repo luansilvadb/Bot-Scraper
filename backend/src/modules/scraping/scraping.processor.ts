@@ -2,9 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { PlaywrightService } from './playwright.service';
-import { AmazonScraper } from './scrapers/amazon.scraper';
-import { ProfitFilter } from './logic/profit-filter';
+import { TasksService } from '../tasks/tasks.service';
 
 @Processor('scraping')
 export class ScrapingProcessor extends WorkerHost {
@@ -12,66 +10,64 @@ export class ScrapingProcessor extends WorkerHost {
 
   constructor(
     private prisma: PrismaService,
-    private playwright: PlaywrightService,
-    private amazonScraper: AmazonScraper,
-    private profitFilter: ProfitFilter,
+    private tasksService: TasksService,
   ) {
     super();
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
     const { botId } = job.data;
-    this.logger.log(`Processing scraping job for bot: ${botId}`);
-
-    const bot = await this.prisma.bot.findUnique({
-      where: { id: botId },
-    });
-
-    if (!bot) {
-      this.logger.error(`Bot ${botId} not found`);
-      return;
-    }
-
-    if (bot.status !== 'ACTIVE') {
-      this.logger.warn(`Bot ${botId} is not ACTIVE. Skipping.`);
-      return;
-    }
-
-    const context = await this.playwright.createContext();
-    const page = await context.newPage();
+    this.logger.log('=============================================');
+    this.logger.log(`BULLMQ JOB STARTED - Bot: ${botId}`);
+    this.logger.log(`Job ID: ${job.id}`);
+    this.logger.log(`Job Name: ${job.name}`);
+    this.logger.log(`Job Data: ${JSON.stringify(job.data)}`);
 
     try {
-      const products = await this.amazonScraper.scrape(page, bot.targetUrl);
+      const bot = await this.prisma.bot.findUnique({
+        where: { id: botId },
+      });
 
-      for (const product of products) {
-        const status = this.profitFilter.evaluate(product.discountPercentage);
-
-        await this.prisma.scrapedProduct.upsert({
-          where: { asin: product.asin },
-          update: {
-            currentPrice: product.currentPrice,
-            originalPrice: product.originalPrice,
-            discountPercentage: product.discountPercentage,
-            status: status, // Update status if it's found again with high discount
-          },
-          create: {
-            ...product,
-            botId: bot.id,
-            status: status,
-          },
-        });
+      if (!bot) {
+        this.logger.error(`Bot ${botId} not found`);
+        this.logger.log('=============================================');
+        return { error: 'Bot not found' };
       }
 
-      this.logger.log(
-        `Successfully processed ${products.length} products for bot ${bot.name}`,
-      );
+      this.logger.log(`Bot found: ${bot.name} (${bot.id})`);
+      this.logger.log(`Bot status: ${bot.status}`);
+      this.logger.log(`Bot target URL: ${bot.targetUrl}`);
+
+      if (bot.status !== 'ACTIVE') {
+        this.logger.warn(`Bot ${botId} is not ACTIVE. Status: ${bot.status}. Skipping.`);
+        this.logger.log('=============================================');
+        return { error: `Bot is ${bot.status}` };
+      }
+
+      this.logger.log(`Creating delegated scraping task for bot ${bot.name} (${bot.id})`);
+
+      // Create a task that will be picked up by the WorkersService cron and sent to a worker
+      const task = await this.prisma.scrapingTask.create({
+        data: {
+          productUrl: bot.targetUrl,
+          priority: 10, // High priority for bot-triggered tasks
+          botId: bot.id,
+          status: 'PENDING',
+        },
+      });
+
+      this.logger.log(`SUCCESS! Task ${task.id} created successfully`);
+      this.logger.log(`Task URL: ${task.productUrl}`);
+      this.logger.log(`Task Status: ${task.status}`);
+      this.logger.log(`Task Priority: ${task.priority}`);
+      this.logger.log('=============================================');
+
+      return { taskId: task.id, status: 'PENDING' };
     } catch (error) {
-      this.logger.error(
-        `Failed to scrape for bot ${bot.name}: ${error.message}`,
-      );
+      this.logger.error(`Error processing job for bot ${botId}: ${error.message}`);
+      this.logger.error(`Stack trace: ${error.stack}`);
+      this.logger.log('=============================================');
       throw error;
-    } finally {
-      await context.close();
     }
   }
 }

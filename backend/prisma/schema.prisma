@@ -79,10 +79,10 @@ enum TaskStatus {
 
 model LocalWorker {
   id                  String       @id @default(uuid())
-  name                String       @db.VarChar(100)
+  name                String
   token               String       @unique
-  ispName             String?      @db.VarChar(50)
-  externalIp          String?      @db.VarChar(45)
+  ispName             String?
+  externalIp          String?
   status              WorkerStatus @default(DISCONNECTED)
   lastHeartbeatAt     DateTime?
   tasksCompletedCount Int          @default(0)
@@ -97,13 +97,14 @@ model LocalWorker {
 
 model ScrapingTask {
   id               String     @id @default(uuid())
-  productUrl       String     @db.VarChar(2048)
+  productUrl       String
   status           TaskStatus @default(PENDING)
   priority         Int        @default(0)
   attemptCount     Int        @default(0)
   maxAttempts      Int        @default(3)
   assignedWorkerId String?
-  errorType        String?    @db.VarChar(50)
+  botId            String?
+  errorType        String?
   errorMessage     String?
   startedAt        DateTime?
   completedAt      DateTime?
@@ -121,7 +122,7 @@ model ScrapingTask {
 model ScrapingResult {
   id            String   @id @default(uuid())
   taskId        String   @unique
-  productTitle  String   @db.VarChar(500)
+  productTitle  String
   price         Decimal? @db.Decimal(10, 2)
   currency      String   @default("BRL") @db.VarChar(3)
   originalPrice Decimal? @db.Decimal(10, 2)
@@ -130,7 +131,7 @@ model ScrapingResult {
   availability  String?
   isAvailable   Boolean  @default(true)
   imageUrls     String[] @default([])
-  asin          String?  @db.VarChar(20)
+  asin          String?
   scrapedAt     DateTime @default(now())
   createdAt     DateTime @default(now())
 

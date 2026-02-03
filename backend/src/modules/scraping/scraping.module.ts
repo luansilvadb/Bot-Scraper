@@ -1,12 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { ScrapingService } from './scraping.service';
-import { PlaywrightService } from './playwright.service';
-import { AmazonScraper } from './scrapers/amazon.scraper';
 import { ProfitFilter } from './logic/profit-filter';
 import { ScrapingProcessor } from './scraping.processor';
 import { QueueModule } from '../../common/queues/queue.module';
-import { PrismaService } from '../../prisma/prisma.service';
+import { TasksModule } from '../tasks/tasks.module';
 
 @Module({
   imports: [
@@ -14,14 +12,13 @@ import { PrismaService } from '../../prisma/prisma.service';
     BullModule.registerQueue({
       name: 'scraping',
     }),
+    forwardRef(() => TasksModule),
   ],
   providers: [
     ScrapingService,
-    PlaywrightService,
-    AmazonScraper,
     ProfitFilter,
     ScrapingProcessor,
   ],
-  exports: [ScrapingService, PlaywrightService],
+  exports: [ScrapingService, ProfitFilter],
 })
-export class ScrapingModule {}
+export class ScrapingModule { }

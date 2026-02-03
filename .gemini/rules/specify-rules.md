@@ -23,6 +23,8 @@ Auto-generated from all feature plans. Last updated: 2026-02-01
 - electron-store (encrypted local config) (013-tray-config-ux)
 - TypeScript 5.x, React 18.x (Worker App) + `@fluentui/react-components` (UI), `electron` (Runtime) (014-fix-token-input)
 - Electron Store (via IPC) for config persistence (014-fix-token-input)
+- TypeScript 5.3+ (Node.js 18+ Iron/Hydrogen) (016-worker-to-nestjs)
+- N/A (Stateless worker, sends data back to backend) (016-worker-to-nestjs)
 
 - TypeScript 5.x (Node.js 20 LTS "Iron" or 22 "Hydrogen") (001-affiliate-bot-platform)
 
@@ -43,9 +45,9 @@ npm test; npm run lint
 TypeScript 5.x (Node.js 20 LTS "Iron" or 22 "Hydrogen"): Follow standard conventions
 
 ## Recent Changes
+- 016-worker-to-nestjs: Added TypeScript 5.3+ (Node.js 18+ Iron/Hydrogen)
+- 016-worker-to-nestjs: Added TypeScript 5.3+ (Node.js 18+ Iron/Hydrogen)
 - 014-fix-token-input: Added TypeScript 5.x, React 18.x (Worker App) + `@fluentui/react-components` (UI), `electron` (Runtime)
-- 014-fix-token-input: Added TypeScript 5.x, React 18.x (Worker App) + `@fluentui/react-components` (UI), `electron` (Runtime)
-- 013-tray-config-ux: Added TypeScript 5.x, Node.js LTS + Electron 28+, React 18, Fluent UI v9, Vite
 
 
 <!-- MANUAL ADDITIONS START -->

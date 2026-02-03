@@ -33,45 +33,60 @@ export class WorkersService {
         );
     }
 
-    /**
-     * Attempt to dispatch pending tasks to idle workers
-     * @param specificWorkerId Optional: if provided, only try to assign to this worker
-     */
-    async dispatchTask(specificWorkerId?: string) {
-        // 1. Find next pending task
-        const task = await this.tasksService.getNextPendingTask();
-        if (!task) return; // No tasks pending
-
-        // 2. Find idle worker
-        let worker;
-        if (specificWorkerId) {
-            worker = await this.prisma.localWorker.findFirst({
-                where: { id: specificWorkerId, status: WorkerStatus.CONNECTED },
-            });
-        } else {
-            worker = await this.prisma.localWorker.findFirst({
-                where: { status: WorkerStatus.CONNECTED },
-                orderBy: { tasksCompletedCount: 'asc' }, // Load balancing strategy: least busy
-            });
-        }
-
-        if (!worker) return; // No worker available
-
-        // 3. Assign task
-        await this.tasksService.assignTaskToWorker(task.id, worker.id);
-
-        // 4. Update worker status (optimistic)
-        await this.updateStatus(worker.id, WorkerStatus.BUSY);
-
-        // 5. Emit to worker
-        this.workersGateway.sendTaskToWorker(worker.id, {
-            taskId: task.id,
-            productUrl: task.productUrl,
-            priority: task.priority,
-            attemptNumber: task.attemptCount + 1,
-            assignedAt: new Date().toISOString(),
-        });
+  /**
+   * Attempt to dispatch pending tasks to idle workers
+   * @param specificWorkerId Optional: if provided, only try to assign to this worker
+   */
+  async dispatchTask(specificWorkerId?: string) {
+    // 1. Find next pending task
+    const task = await this.tasksService.getNextPendingTask();
+    if (!task) {
+      this.logger.debug('No pending tasks to dispatch');
+      return; // No tasks pending
     }
+
+    this.logger.log(`Found pending task ${task.id} for URL: ${task.productUrl}`);
+
+    // 2. Find idle worker
+    let worker;
+    if (specificWorkerId) {
+      worker = await this.prisma.localWorker.findFirst({
+        where: { id: specificWorkerId, status: WorkerStatus.CONNECTED },
+      });
+      if (!worker) {
+        this.logger.warn(`Specified worker ${specificWorkerId} not found or not connected`);
+      }
+    } else {
+      worker = await this.prisma.localWorker.findFirst({
+        where: { status: WorkerStatus.CONNECTED },
+        orderBy: { tasksCompletedCount: 'asc' }, // Load balancing strategy: least busy
+      });
+    }
+
+    if (!worker) {
+      this.logger.warn(`No available worker found to process task ${task.id}`);
+      return; // No worker available
+    }
+
+    this.logger.log(`Dispatching task ${task.id} to worker ${worker.name} (${worker.id})`);
+
+    // 3. Assign task
+    await this.tasksService.assignTaskToWorker(task.id, worker.id);
+
+    // 4. Update worker status (optimistic)
+    await this.updateStatus(worker.id, WorkerStatus.BUSY);
+
+    // 5. Emit to worker
+    const payload = {
+      taskId: task.id,
+      productUrl: task.productUrl,
+      priority: task.priority,
+      attemptNumber: task.attemptCount + 1,
+      assignedAt: new Date().toISOString(),
+    };
+    this.workersGateway.sendTaskToWorker(worker.id, payload);
+    this.logger.log(`Task ${task.id} assigned to worker ${worker.id}`);
+  }
 
     /**
      * Register a new worker via REST API
@@ -112,46 +127,78 @@ export class WorkersService {
     }
 
     async updateStatus(id: string, status: WorkerStatus) {
+        const data: any = { status, updatedAt: new Date() };
+        if (status === WorkerStatus.CONNECTED) {
+            data.lastHeartbeatAt = new Date();
+        }
         return this.prisma.localWorker.update({
             where: { id },
-            data: { status, updatedAt: new Date() },
+            data,
         });
     }
 
-    async processHeartbeat(workerId: string, payload: WorkerHeartbeatDto) {
-        // Map idle/busy to WorkerStatus enum
-        let status: WorkerStatus = WorkerStatus.CONNECTED;
-        if (payload.status === 'busy') status = WorkerStatus.BUSY;
-        if (payload.status === 'blocked') status = WorkerStatus.BLOCKED;
+  async processHeartbeat(workerId: string, payload: WorkerHeartbeatDto) {
+    // Map idle/busy to WorkerStatus enum
+    let status: WorkerStatus = WorkerStatus.CONNECTED;
+    if (payload.status === 'busy') status = WorkerStatus.BUSY;
+    if (payload.status === 'blocked') status = WorkerStatus.BLOCKED;
 
-        if (!payload.networkInfo) {
-            this.logger.warn(`Worker ${workerId} sent heartbeat without networkInfo`);
-        }
-
-        try {
-            await this.prisma.localWorker.update({
-                where: { id: workerId },
-                data: {
-                    status,
-                    lastHeartbeatAt: new Date(),
-                    externalIp: payload.networkInfo?.externalIp,
-                    ispName: payload.networkInfo?.ispName,
-                    tasksCompletedCount: payload.stats?.tasksCompleted,
-                    tasksFailedCount: payload.stats?.tasksFailed,
-                },
-            });
-
-            // T050: Trigger dispatch if worker is idle
-            if (status === WorkerStatus.CONNECTED) {
-                // We use setImmediate to not block the heartbeat response
-                setImmediate(() => this.dispatchTask(workerId));
-            }
-        } catch (error) {
-            this.logger.error(
-                `Failed to process heartbeat for worker ${workerId}: ${error.message}`,
-            );
-        }
+    if (!payload.networkInfo) {
+      this.logger.warn(`Worker ${workerId} sent heartbeat without networkInfo`);
     }
+
+    try {
+      await this.prisma.localWorker.update({
+        where: { id: workerId },
+        data: {
+          status,
+          lastHeartbeatAt: new Date(),
+          externalIp: payload.networkInfo?.externalIp,
+          ispName: payload.networkInfo?.ispName,
+          tasksCompletedCount: payload.stats?.tasksCompleted,
+          tasksFailedCount: payload.stats?.tasksFailed,
+        },
+      });
+
+      this.logger.debug(`Heartbeat processed for worker ${workerId}: status=${status}`);
+
+      // T050: Trigger dispatch if worker is idle
+      if (status === WorkerStatus.CONNECTED) {
+        // We use setImmediate to not block the heartbeat response
+        setImmediate(() => this.dispatchTask(workerId));
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to process heartbeat for worker ${workerId}: ${error.message}`,
+      );
+    }
+  }
+
+  async incrementTasksCompleted(workerId: string) {
+    try {
+      await this.prisma.localWorker.update({
+        where: { id: workerId },
+        data: {
+          tasksCompletedCount: { increment: 1 },
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to increment tasks completed for worker ${workerId}: ${error.message}`);
+    }
+  }
+
+  async incrementTasksFailed(workerId: string) {
+    try {
+      await this.prisma.localWorker.update({
+        where: { id: workerId },
+        data: {
+          tasksFailedCount: { increment: 1 },
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to increment tasks failed for worker ${workerId}: ${error.message}`);
+    }
+  }
 
     /**
      * Regenerate token for an existing worker.
@@ -211,14 +258,40 @@ export class WorkersService {
         });
     }
 
-    /**
-     * Periodic queue processing
-     */
-    @Cron(CronExpression.EVERY_5_SECONDS)
-    async dispatchQueue() {
-        // Try to dispatch to any available worker
-        await this.dispatchTask();
+  /**
+   * Periodic queue processing
+   */
+  @Cron(CronExpression.EVERY_5_SECONDS)
+  async dispatchQueue() {
+    this.logger.debug('Running dispatchQueue cron job...');
+    
+    // Check if there are any pending tasks
+    const pendingCount = await this.prisma.scrapingTask.count({
+      where: { status: 'PENDING' }
+    });
+    
+    if (pendingCount === 0) {
+      this.logger.debug('No pending tasks to dispatch');
+      return;
     }
+    
+    this.logger.log(`Found ${pendingCount} pending task(s). Attempting to dispatch...`);
+    
+    // Check available workers
+    const availableWorkers = await this.prisma.localWorker.count({
+      where: { status: 'CONNECTED' }
+    });
+    
+    if (availableWorkers === 0) {
+      this.logger.warn(`No available workers! ${pendingCount} task(s) waiting.`);
+      return;
+    }
+    
+    this.logger.log(`Found ${availableWorkers} available worker(s)`);
+    
+    // Try to dispatch to any available worker
+    await this.dispatchTask();
+  }
 
     /**
      * Check for workers that haven't sent heartbeat recently

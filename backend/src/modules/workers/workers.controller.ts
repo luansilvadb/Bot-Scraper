@@ -1,11 +1,12 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Delete,
+import { 
+  Controller, 
+  Get, 
+  Post, 
+  Body, 
+  Param, 
+  Delete, 
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { WorkersService } from './workers.service';
 import { RegisterWorkerDto } from './dto/register-worker.dto';
@@ -13,11 +14,24 @@ import { WorkerStatusDto } from './dto/worker-status.dto';
 
 @Controller('api/workers')
 export class WorkersController {
+  private readonly logger = new Logger(WorkersController.name);
+
   constructor(private readonly workersService: WorkersService) { }
 
   @Post()
   async register(@Body() registerWorkerDto: RegisterWorkerDto) {
+    this.logger.log('=============================================');
+    this.logger.log('REGISTERING NEW WORKER');
+    this.logger.log(`Worker name: ${registerWorkerDto.name}`);
+    
     const worker = await this.workersService.register(registerWorkerDto);
+    
+    this.logger.log(`Worker registered successfully!`);
+    this.logger.log(`Worker ID: ${worker.id}`);
+    this.logger.log(`Worker Token: ${worker.token}`);
+    this.logger.log(`IMPORTANT: Save this token in your worker/.env file!`);
+    this.logger.log('=============================================');
+    
     return worker;
   }
 
