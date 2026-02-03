@@ -52,7 +52,12 @@ export class TasksService {
         take: limit,
         skip,
         orderBy: { createdAt: 'desc' },
-        include: { result: true },
+        include: {
+          result: true,
+          assignedWorker: {
+            select: { id: true, name: true },
+          },
+        },
       }),
       this.prisma.scrapingTask.count({ where }),
     ]);

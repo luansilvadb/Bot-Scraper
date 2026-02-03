@@ -6,8 +6,45 @@ import {
     DialogBody,
     DialogActions,
     Button,
+    makeStyles,
+    shorthands,
+    tokens,
 } from '@fluentui/react-components';
 import { Warning24Regular } from '@fluentui/react-icons';
+
+const useStyles = makeStyles({
+    title: {
+        display: 'flex',
+        alignItems: 'center',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+    },
+    dangerIcon: {
+        color: tokens.colorStatusDangerForeground1,
+    },
+    warningIcon: {
+        color: tokens.colorStatusWarningForeground1,
+    },
+    message: {
+        margin: 0,
+        color: tokens.colorNeutralForeground2,
+    },
+    dangerButton: {
+        backgroundColor: tokens.colorStatusDangerBackground3,
+        color: tokens.colorNeutralForegroundInverted,
+        ':hover': {
+            backgroundColor: tokens.colorStatusDangerBackground3Hover,
+            color: tokens.colorNeutralForegroundInverted,
+        },
+        ':active': {
+            backgroundColor: tokens.colorStatusDangerBackground3Pressed,
+            color: tokens.colorNeutralForegroundInverted,
+        },
+    },
+    surface: {
+        width: '90%',
+        maxWidth: '440px',
+    },
+});
 
 interface ConfirmDialogProps {
     open: boolean;
@@ -32,44 +69,34 @@ export function ConfirmDialog({
     onConfirm,
     onCancel,
 }: ConfirmDialogProps) {
-    const confirmAppearance = variant === 'danger' ? 'primary' : 'primary';
+    const styles = useStyles();
+
+    const getIcon = () => {
+        if (variant === 'danger') return <Warning24Regular className={styles.dangerIcon} />;
+        if (variant === 'warning') return <Warning24Regular className={styles.warningIcon} />;
+        return null;
+    };
 
     return (
         <Dialog open={open} onOpenChange={(_, data) => !data.open && onCancel()}>
-            <DialogSurface>
+            <DialogSurface className={styles.surface}>
                 <DialogBody>
-                    <DialogTitle
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                        }}
-                    >
-                        {variant !== 'default' && (
-                            <Warning24Regular
-                                style={{
-                                    color: variant === 'danger' ? '#d13438' : '#f7630c',
-                                }}
-                            />
-                        )}
+                    <DialogTitle className={styles.title}>
+                        {getIcon()}
                         {title}
                     </DialogTitle>
                     <DialogContent>
-                        <p style={{ margin: 0, color: '#444' }}>{message}</p>
+                        <p className={styles.message}>{message}</p>
                     </DialogContent>
                     <DialogActions>
                         <Button appearance="secondary" onClick={onCancel} disabled={isLoading}>
                             {cancelLabel}
                         </Button>
                         <Button
-                            appearance={confirmAppearance}
+                            appearance="primary"
                             onClick={onConfirm}
                             disabled={isLoading}
-                            style={
-                                variant === 'danger'
-                                    ? { backgroundColor: '#d13438', color: 'white' }
-                                    : undefined
-                            }
+                            className={variant === 'danger' ? styles.dangerButton : undefined}
                         >
                             {isLoading ? 'Loading...' : confirmLabel}
                         </Button>

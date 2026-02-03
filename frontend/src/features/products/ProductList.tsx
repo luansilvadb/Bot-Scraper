@@ -3,7 +3,6 @@ import {
     Badge,
     Button,
     Card,
-    Subtitle1,
     Body1,
     Caption1,
     makeStyles,
@@ -19,6 +18,9 @@ import {
     ToastBody,
     useId,
     Image,
+    Text,
+    Skeleton,
+    SkeletonItem,
 } from '@fluentui/react-components';
 import {
     Delete20Regular,
@@ -26,6 +28,8 @@ import {
     Dismiss20Regular,
     Search20Regular,
     ArrowSync20Regular,
+    ChevronLeft24Regular,
+    ChevronRight24Regular,
 } from '@fluentui/react-icons';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import {
@@ -43,107 +47,171 @@ const useStyles = makeStyles({
     container: {
         display: 'flex',
         flexDirection: 'column',
-        ...shorthands.gap('24px'),
+        ...shorthands.gap(tokens.spacingVerticalL),
     },
     header: {
         display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap(tokens.spacingVerticalXS),
+        marginBottom: tokens.spacingVerticalM,
+    },
+    headerTop: {
+        display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        flexWrap: 'wrap',
-        ...shorthands.gap('16px'),
     },
-    headerLeft: {
+    subtitle: {
+        color: tokens.colorNeutralForeground4,
+    },
+    filterBar: {
         display: 'flex',
         alignItems: 'center',
-        ...shorthands.gap('16px'),
-    },
-    filters: {
-        display: 'flex',
-        alignItems: 'center',
-        ...shorthands.gap('8px'),
+        justifyContent: 'space-between',
+        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+        ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingHorizontalM),
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        ...shorthands.border('1px', 'solid', 'rgba(255, 255, 255, 0.05)'),
+        ...shorthands.gap(tokens.spacingHorizontalM),
         flexWrap: 'wrap',
     },
-    filterSelect: {
-        minWidth: '140px',
+    filtersLeft: {
+        display: 'flex',
+        alignItems: 'center',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+        flexWrap: 'wrap',
     },
     searchInput: {
-        minWidth: '200px',
+        minWidth: '240px',
     },
-    bulkActions: {
-        display: 'flex',
-        alignItems: 'center',
-        ...shorthands.gap('8px'),
+    filterSelect: {
+        minWidth: '130px',
     },
     grid: {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        ...shorthands.gap('16px'),
+        ...shorthands.gap(tokens.spacingHorizontalL),
     },
     card: {
         position: 'relative',
-        ...shorthands.padding('16px'),
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        ...shorthands.border('1px', 'solid', 'rgba(255, 255, 255, 0.06)'),
+        ...shorthands.padding(tokens.spacingHorizontalM),
+        transition: 'background-color 0.3s ease',
+        display: 'flex',
+        flexDirection: 'column',
+        ':hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        },
     },
     cardCheckbox: {
         position: 'absolute',
         top: '8px',
         left: '8px',
-        zIndex: 1,
+        zIndex: 2,
+    },
+    imageContainer: {
+        width: '100%',
+        height: '180px',
+        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        overflow: 'hidden',
+        marginBottom: tokens.spacingVerticalM,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     cardImage: {
-        width: '100%',
-        height: '160px',
+        maxWidth: '100%',
+        maxHeight: '100%',
         objectFit: 'contain',
-        backgroundColor: tokens.colorNeutralBackground2,
-        ...shorthands.borderRadius(tokens.borderRadiusMedium),
-        marginBottom: '12px',
     },
     cardContent: {
         display: 'flex',
         flexDirection: 'column',
-        ...shorthands.gap('8px'),
+        ...shorthands.gap(tokens.spacingVerticalS),
+        flexGrow: 1,
     },
     cardTitle: {
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        display: '-webkit-box',
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: 'vertical',
-        minHeight: '40px',
+        fontWeight: tokens.fontWeightSemibold,
+        minHeight: '44px',
+        lineHeight: '1.4',
     },
-    priceRow: {
+    priceContainer: {
         display: 'flex',
         alignItems: 'center',
-        ...shorthands.gap('8px'),
+        justifyContent: 'space-between',
+        marginTop: 'auto',
+    },
+    priceBlock: {
+        display: 'flex',
+        flexDirection: 'column',
     },
     currentPrice: {
-        fontSize: '18px',
-        fontWeight: 600,
-        color: tokens.colorPaletteGreenForeground1,
+        fontSize: tokens.fontSizeBase500,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorBrandForeground1,
     },
     originalPrice: {
         textDecoration: 'line-through',
-        color: tokens.colorNeutralForeground3,
+        color: tokens.colorNeutralForeground4,
+        fontSize: tokens.fontSizeBase200,
     },
     discountBadge: {
-        marginLeft: 'auto',
+        backgroundColor: tokens.colorPaletteRedBackground3,
+        color: tokens.colorNeutralForegroundInverted,
+        fontWeight: tokens.fontWeightBold,
+    },
+    footerContainer: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: tokens.spacingVerticalM,
+        paddingTop: tokens.spacingVerticalS,
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     cardActions: {
         display: 'flex',
-        ...shorthands.gap('4px'),
-        marginTop: '8px',
+        ...shorthands.gap(tokens.spacingHorizontalXS),
     },
-    emptyState: {
-        textAlign: 'center',
-        ...shorthands.padding('48px'),
-        color: tokens.colorNeutralForeground3,
+    bulkBar: {
+        display: 'flex',
+        alignItems: 'center',
+        backgroundColor: tokens.colorBrandBackground2,
+        color: tokens.colorBrandForeground2,
+        ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingHorizontalM),
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        ...shorthands.gap(tokens.spacingHorizontalM),
+        marginBottom: tokens.spacingVerticalM,
     },
     pagination: {
         display: 'flex',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        ...shorthands.gap('16px'),
-        marginTop: '16px',
+        marginTop: tokens.spacingVerticalXL,
+        ...shorthands.padding(tokens.spacingVerticalM, '0'),
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
     },
+    paginationControls: {
+        display: 'flex',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+        alignItems: 'center',
+    },
+    emptyState: {
+        textAlign: 'center',
+        ...shorthands.padding('80px', '20px'),
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        ...shorthands.gap(tokens.spacingVerticalM),
+        color: tokens.colorNeutralForeground4,
+    },
+    errorContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        ...shorthands.padding('100px', '20px'),
+        ...shorthands.gap(tokens.spacingVerticalM),
+    }
 });
 
 export function ProductList() {
@@ -318,8 +386,9 @@ export function ProductList() {
 
     if (error) {
         return (
-            <div style={{ color: 'red', padding: '1rem' }}>
-                Error loading products: {error.message}
+            <div className={styles.errorContainer}>
+                <Body1>Error loading products: {error.message}</Body1>
+                <Button onClick={() => refetch()}>Retry</Button>
             </div>
         );
     }
@@ -332,17 +401,26 @@ export function ProductList() {
             <Toaster toasterId={toasterId} />
 
             <div className={styles.header}>
-                <div className={styles.headerLeft}>
-                    <Subtitle1>Product Approval</Subtitle1>
+                <div className={styles.headerTop}>
+                    <div>
+                        <Text size={600} weight="bold" as="h1">Product Approval</Text>
+                        <div className={styles.subtitle}>
+                            Review and approve products captured by your bot network
+                        </div>
+                    </div>
                     <Button
                         icon={<ArrowSync20Regular />}
                         appearance="subtle"
                         onClick={() => refetch()}
+                        disabled={isLoading}
                     >
                         Refresh
                     </Button>
                 </div>
-                <div className={styles.filters}>
+            </div>
+
+            <div className={styles.filterBar}>
+                <div className={styles.filtersLeft}>
                     <Input
                         className={styles.searchInput}
                         placeholder="Search products..."
@@ -385,37 +463,83 @@ export function ProductList() {
             </div>
 
             {selectedIds.size > 0 && (
-                <div className={styles.bulkActions}>
+                <div className={styles.bulkBar}>
                     <Checkbox
                         checked={products.length > 0 && selectedIds.size === products.length}
                         onChange={toggleSelectAll}
-                        label={`${selectedIds.size} selected`}
+                        label={`${selectedIds.size} items selected`}
                     />
+                    <div style={{ flexGrow: 1 }} />
                     <Button
                         icon={<Checkmark20Regular />}
                         appearance="primary"
                         onClick={handleBulkApprove}
                         disabled={bulkApprove.isPending}
                     >
-                        Approve Selected
+                        Approve All
                     </Button>
                     <Button
                         icon={<Dismiss20Regular />}
-                        appearance="outline"
+                        appearance="subtle"
                         onClick={handleBulkReject}
                         disabled={bulkReject.isPending}
                     >
-                        Reject Selected
+                        Reject All
                     </Button>
                 </div>
             )}
 
             {isLoading ? (
-                <div className={styles.emptyState}>Loading products...</div>
+                <div className={styles.grid}>
+                    {[...Array(8)].map((_, i) => (
+                        <Card key={i} className={styles.card}>
+                            <div className={styles.imageContainer}>
+                                <Skeleton style={{ width: '100%', height: '100%' }}>
+                                    <SkeletonItem shape="rectangle" style={{ width: '100%', height: '100%' }} />
+                                </Skeleton>
+                            </div>
+                            <div className={styles.cardContent}>
+                                <Skeleton>
+                                    <SkeletonItem size={16} style={{ width: '90%' }} />
+                                    <SkeletonItem size={16} style={{ width: '60%', marginTop: '8px' }} />
+                                </Skeleton>
+
+                                <div className={styles.priceContainer} style={{ marginTop: 'auto' }}>
+                                    <div className={styles.priceBlock}>
+                                        <Skeleton>
+                                            <SkeletonItem size={24} style={{ width: '70px' }} />
+                                            <SkeletonItem size={12} style={{ width: '40px', marginTop: '4px' }} />
+                                        </Skeleton>
+                                    </div>
+                                    <Skeleton>
+                                        <SkeletonItem shape="rectangle" style={{ width: '48px', height: '24px', borderRadius: '4px' }} />
+                                    </Skeleton>
+                                </div>
+
+                                <div className={styles.footerContainer}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Skeleton>
+                                            <SkeletonItem shape="rectangle" style={{ width: '60px', height: '20px', borderRadius: '4px' }} />
+                                        </Skeleton>
+                                    </div>
+                                    <div className={styles.cardActions}>
+                                        <Skeleton>
+                                            <div style={{ display: 'flex', gap: '4px' }}>
+                                                <SkeletonItem shape="circle" size={24} />
+                                                <SkeletonItem shape="circle" size={24} />
+                                                <SkeletonItem shape="circle" size={24} />
+                                            </div>
+                                        </Skeleton>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
             ) : products.length === 0 ? (
                 <div className={styles.emptyState}>
                     <Body1>No products found</Body1>
-                    <Caption1>Try adjusting your filters</Caption1>
+                    <Caption1>Try adjusting your search filters or status</Caption1>
                 </div>
             ) : (
                 <>
@@ -427,67 +551,71 @@ export function ProductList() {
                                     checked={selectedIds.has(product.id)}
                                     onChange={() => toggleSelect(product.id)}
                                 />
-                                <Image
-                                    src={product.imageUrl}
-                                    alt={product.title}
-                                    className={styles.cardImage}
-                                />
+                                <div className={styles.imageContainer}>
+                                    <Image
+                                        src={product.imageUrl}
+                                        alt={product.title}
+                                        className={styles.cardImage}
+                                    />
+                                </div>
                                 <div className={styles.cardContent}>
                                     <Body1 className={styles.cardTitle}>
                                         {product.title}
                                     </Body1>
-                                    <div className={styles.priceRow}>
-                                        <span className={styles.currentPrice}>
-                                            ${product.currentPrice.toFixed(2)}
-                                        </span>
-                                        <span className={styles.originalPrice}>
-                                            ${product.originalPrice.toFixed(2)}
-                                        </span>
+
+                                    <div className={styles.priceContainer}>
+                                        <div className={styles.priceBlock}>
+                                            <span className={styles.currentPrice}>
+                                                ${product.currentPrice.toFixed(2)}
+                                            </span>
+                                            <span className={styles.originalPrice}>
+                                                ${product.originalPrice.toFixed(2)}
+                                            </span>
+                                        </div>
                                         <Badge
                                             className={styles.discountBadge}
                                             appearance="filled"
-                                            color="danger"
                                         >
                                             -{product.discountPercentage}%
                                         </Badge>
                                     </div>
-                                    <div>
-                                        {getStatusBadge(product.status)}
-                                        {product.bot && (
-                                            <Caption1 style={{ marginLeft: '8px' }}>
-                                                via {product.bot.name}
-                                            </Caption1>
-                                        )}
-                                    </div>
-                                    <div className={styles.cardActions}>
-                                        {product.status === 'PENDING_APPROVAL' && (
-                                            <>
-                                                <Button
-                                                    icon={<Checkmark20Regular />}
-                                                    size="small"
-                                                    appearance="primary"
-                                                    onClick={() => handleApprove(product)}
-                                                    disabled={approveProduct.isPending}
-                                                >
-                                                    Approve
-                                                </Button>
-                                                <Button
-                                                    icon={<Dismiss20Regular />}
-                                                    size="small"
-                                                    appearance="outline"
-                                                    onClick={() => handleReject(product)}
-                                                    disabled={rejectProduct.isPending}
-                                                >
-                                                    Reject
-                                                </Button>
-                                            </>
-                                        )}
-                                        <Button
-                                            icon={<Delete20Regular />}
-                                            size="small"
-                                            appearance="subtle"
-                                            onClick={() => setDeletingProduct(product)}
-                                        />
+
+                                    <div className={styles.footerContainer}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            {getStatusBadge(product.status)}
+                                            {product.bot && (
+                                                <Caption1 style={{ opacity: 0.6 }}>
+                                                    {product.bot.name}
+                                                </Caption1>
+                                            )}
+                                        </div>
+
+                                        <div className={styles.cardActions}>
+                                            {product.status === 'PENDING_APPROVAL' && (
+                                                <>
+                                                    <Button
+                                                        icon={<Checkmark20Regular />}
+                                                        size="small"
+                                                        appearance="subtle"
+                                                        onClick={() => handleApprove(product)}
+                                                        disabled={approveProduct.isPending}
+                                                    />
+                                                    <Button
+                                                        icon={<Dismiss20Regular />}
+                                                        size="small"
+                                                        appearance="subtle"
+                                                        onClick={() => handleReject(product)}
+                                                        disabled={rejectProduct.isPending}
+                                                    />
+                                                </>
+                                            )}
+                                            <Button
+                                                icon={<Delete20Regular />}
+                                                size="small"
+                                                appearance="subtle"
+                                                onClick={() => setDeletingProduct(product)}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </Card>
@@ -496,21 +624,26 @@ export function ProductList() {
 
                     {meta && meta.totalPages > 1 && (
                         <div className={styles.pagination}>
-                            <Button
-                                disabled={page === 1}
-                                onClick={() => setPage((p) => p - 1)}
-                            >
-                                Previous
-                            </Button>
-                            <Body1>
-                                Page {meta.page} of {meta.totalPages}
-                            </Body1>
-                            <Button
-                                disabled={page >= meta.totalPages}
-                                onClick={() => setPage((p) => p + 1)}
-                            >
-                                Next
-                            </Button>
+                            <Caption1 style={{ opacity: 0.6 }}>
+                                Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, meta.total)} of {meta.total} products
+                            </Caption1>
+                            <div className={styles.paginationControls}>
+                                <Button
+                                    icon={<ChevronLeft24Regular />}
+                                    disabled={page === 1}
+                                    onClick={() => setPage((p) => p - 1)}
+                                    appearance="subtle"
+                                />
+                                <Text size={300}>
+                                    Page {meta.page} of {meta.totalPages}
+                                </Text>
+                                <Button
+                                    icon={<ChevronRight24Regular />}
+                                    disabled={page >= meta.totalPages}
+                                    onClick={() => setPage((p) => p + 1)}
+                                    appearance="subtle"
+                                />
+                            </div>
                         </div>
                     )}
                 </>

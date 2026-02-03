@@ -5,26 +5,49 @@ import {
     Button,
     makeStyles,
     shorthands,
+    tokens,
+    Text,
+    Divider,
 } from '@fluentui/react-components';
+import {
+    Tag20Regular,
+    Money20Regular,
+    Image20Regular,
+    Link20Regular,
+} from '@fluentui/react-icons';
 import type { CreateProductInput, UpdateProductInput, Product } from './api';
 
 const useStyles = makeStyles({
     form: {
         display: 'flex',
         flexDirection: 'column',
-        ...shorthands.gap('16px'),
-        paddingTop: '16px',
+        ...shorthands.gap(tokens.spacingVerticalL),
+    },
+    section: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap(tokens.spacingVerticalM),
+    },
+    sectionHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+        marginBottom: tokens.spacingVerticalXS,
+    },
+    sectionTitle: {
+        color: tokens.colorNeutralForeground1,
+        fontWeight: tokens.fontWeightSemibold,
     },
     row: {
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        ...shorthands.gap('16px'),
+        ...shorthands.gap(tokens.spacingHorizontalM),
     },
     actions: {
         display: 'flex',
         justifyContent: 'flex-end',
-        ...shorthands.gap('8px'),
-        paddingTop: '8px',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+        marginTop: tokens.spacingVerticalL,
     },
 });
 
@@ -180,109 +203,139 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
     return (
         <form onSubmit={handleSubmit} className={styles.form}>
-            {mode === 'create' && (
-                <Field
-                    label="ASIN"
-                    required
-                    validationState={errors.asin ? 'error' : 'none'}
-                    validationMessage={errors.asin}
-                >
-                    <Input
-                        value={formData.asin}
-                        onChange={handleChange('asin')}
-                        placeholder="B0XXXXXXXXX"
-                    />
-                </Field>
-            )}
-
-            <Field
-                label="Title"
-                required
-                validationState={errors.title ? 'error' : 'none'}
-                validationMessage={errors.title}
-            >
-                <Input
-                    value={formData.title}
-                    onChange={handleChange('title')}
-                    placeholder="Product title"
-                />
-            </Field>
-
-            <div className={styles.row}>
-                <Field
-                    label="Current Price"
-                    required
-                    validationState={errors.currentPrice ? 'error' : 'none'}
-                    validationMessage={errors.currentPrice}
-                >
-                    <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.currentPrice}
-                        onChange={handleChange('currentPrice')}
-                        placeholder="49.99"
-                    />
-                </Field>
+            <div className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <Tag20Regular color={tokens.colorBrandForeground1} />
+                    <Text className={styles.sectionTitle}>Identity & Details</Text>
+                </div>
+                {mode === 'create' && (
+                    <Field
+                        label="ASIN"
+                        required
+                        validationState={errors.asin ? 'error' : 'none'}
+                        validationMessage={errors.asin}
+                    >
+                        <Input
+                            value={formData.asin}
+                            onChange={handleChange('asin')}
+                            placeholder="B0XXXXXXXXX"
+                        />
+                    </Field>
+                )}
 
                 <Field
-                    label="Original Price"
+                    label="Title"
                     required
-                    validationState={errors.originalPrice ? 'error' : 'none'}
-                    validationMessage={errors.originalPrice}
+                    validationState={errors.title ? 'error' : 'none'}
+                    validationMessage={errors.title}
                 >
                     <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.originalPrice}
-                        onChange={handleChange('originalPrice')}
-                        placeholder="99.99"
+                        value={formData.title}
+                        onChange={handleChange('title')}
+                        placeholder="Product title"
                     />
                 </Field>
             </div>
 
-            <Field
-                label="Discount Percentage"
-                required
-                validationState={errors.discountPercentage ? 'error' : 'none'}
-                validationMessage={errors.discountPercentage}
-            >
-                <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={formData.discountPercentage}
-                    onChange={handleChange('discountPercentage')}
-                    placeholder="50"
-                />
-            </Field>
+            <Divider />
 
-            <Field
-                label="Image URL"
-                required
-                validationState={errors.imageUrl ? 'error' : 'none'}
-                validationMessage={errors.imageUrl}
-            >
-                <Input
-                    value={formData.imageUrl}
-                    onChange={handleChange('imageUrl')}
-                    placeholder="https://example.com/image.jpg"
-                />
-            </Field>
+            <div className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <Money20Regular color={tokens.colorBrandForeground1} />
+                    <Text className={styles.sectionTitle}>Pricing Information</Text>
+                </div>
+                <div className={styles.row}>
+                    <Field
+                        label="Current Price"
+                        required
+                        validationState={errors.currentPrice ? 'error' : 'none'}
+                        validationMessage={errors.currentPrice}
+                    >
+                        <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.currentPrice}
+                            onChange={handleChange('currentPrice')}
+                            placeholder="49.99"
+                        />
+                    </Field>
 
-            <Field
-                label="Product URL"
-                required
-                validationState={errors.productUrl ? 'error' : 'none'}
-                validationMessage={errors.productUrl}
-            >
-                <Input
-                    value={formData.productUrl}
-                    onChange={handleChange('productUrl')}
-                    placeholder="https://amazon.com/dp/B0XXXXXXXXX"
-                />
-            </Field>
+                    <Field
+                        label="Original Price"
+                        required
+                        validationState={errors.originalPrice ? 'error' : 'none'}
+                        validationMessage={errors.originalPrice}
+                    >
+                        <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.originalPrice}
+                            onChange={handleChange('originalPrice')}
+                            placeholder="99.99"
+                        />
+                    </Field>
+                </div>
+
+                <Field
+                    label="Discount Percentage"
+                    required
+                    validationState={errors.discountPercentage ? 'error' : 'none'}
+                    validationMessage={errors.discountPercentage}
+                >
+                    <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={formData.discountPercentage}
+                        onChange={handleChange('discountPercentage')}
+                        placeholder="50"
+                    />
+                </Field>
+            </div>
+
+            <Divider />
+
+            <div className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <Image20Regular color={tokens.colorBrandForeground1} />
+                    <Text className={styles.sectionTitle}>Media</Text>
+                </div>
+                <Field
+                    label="Image URL"
+                    required
+                    validationState={errors.imageUrl ? 'error' : 'none'}
+                    validationMessage={errors.imageUrl}
+                >
+                    <Input
+                        value={formData.imageUrl}
+                        onChange={handleChange('imageUrl')}
+                        placeholder="https://example.com/image.jpg"
+                    />
+                </Field>
+            </div>
+
+            <Divider />
+
+            <div className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <Link20Regular color={tokens.colorBrandForeground1} />
+                    <Text className={styles.sectionTitle}>Links</Text>
+                </div>
+                <Field
+                    label="Product URL"
+                    required
+                    validationState={errors.productUrl ? 'error' : 'none'}
+                    validationMessage={errors.productUrl}
+                >
+                    <Input
+                        value={formData.productUrl}
+                        onChange={handleChange('productUrl')}
+                        placeholder="https://amazon.com/dp/B0XXXXXXXXX"
+                    />
+                </Field>
+            </div>
 
             <div className={styles.actions}>
                 <Button appearance="secondary" onClick={onCancel} disabled={isLoading}>

@@ -19,21 +19,22 @@ import {
     Checkmark24Regular,
 } from '@fluentui/react-icons';
 import { TokenDisplay } from './TokenDisplay';
+import { shorthands } from '@fluentui/react-components';
 
 const useStyles = makeStyles({
     content: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
-        paddingTop: '16px',
+        ...shorthands.gap(tokens.spacingVerticalM),
+        paddingTop: tokens.spacingVerticalM,
     },
     warningBanner: {
         backgroundColor: tokens.colorPaletteYellowBackground1,
-        borderRadius: tokens.borderRadiusMedium,
-        padding: '12px 16px',
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
         display: 'flex',
         alignItems: 'flex-start',
-        gap: '12px',
+        ...shorthands.gap(tokens.spacingHorizontalM),
     },
     warningIcon: {
         color: tokens.colorPaletteYellowForeground1,
@@ -43,12 +44,12 @@ const useStyles = makeStyles({
     warningText: {
         color: tokens.colorNeutralForeground1,
         fontSize: tokens.fontSizeBase300,
-        lineHeight: '1.5',
+        lineHeight: tokens.lineHeightBase300,
     },
     tokenSection: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
+        ...shorthands.gap(tokens.spacingVerticalS),
     },
     tokenLabel: {
         fontWeight: tokens.fontWeightSemibold,
@@ -57,14 +58,22 @@ const useStyles = makeStyles({
     actions: {
         display: 'flex',
         justifyContent: 'flex-end',
-        gap: '8px',
-        paddingTop: '8px',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+        paddingTop: tokens.spacingVerticalS,
     },
     confirmContent: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
-        padding: '16px 0',
+        ...shorthands.gap(tokens.spacingVerticalM),
+        ...shorthands.padding(tokens.spacingVerticalM, '0'),
+    },
+    surface: {
+        width: '90%',
+        maxWidth: '560px',
+    },
+    confirmSurface: {
+        width: '90%',
+        maxWidth: '440px',
     },
 });
 
@@ -128,7 +137,7 @@ export function TokenModal({
     if (showConfirmClose) {
         return (
             <Dialog open={true}>
-                <DialogSurface>
+                <DialogSurface className={styles.confirmSurface}>
                     <DialogBody>
                         <DialogTitle>Did you save your token?</DialogTitle>
                         <DialogContent className={styles.confirmContent}>
@@ -166,7 +175,7 @@ export function TokenModal({
             onOpenChange={handleOpenChange}
             modalType="alert"
         >
-            <DialogSurface>
+            <DialogSurface className={styles.surface}>
                 <DialogBody>
                     <DialogTitle>{title}</DialogTitle>
                     <DialogContent className={styles.content}>

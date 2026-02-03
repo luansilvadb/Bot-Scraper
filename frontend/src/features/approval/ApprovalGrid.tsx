@@ -4,7 +4,9 @@ import {
     shorthands,
     Subtitle1,
     MessageBar,
-    Spinner
+    Skeleton,
+    SkeletonItem,
+    Card,
 } from '@fluentui/react-components';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
@@ -50,7 +52,28 @@ export const ApprovalGrid: React.FC = () => {
         }
     });
 
-    if (isLoading) return <Spinner label="Loading items for review..." />;
+    if (isLoading) {
+        return (
+            <div className={styles.container}>
+                <Subtitle1>Approval Center...</Subtitle1>
+                <div className={styles.grid}>
+                    {[...Array(6)].map((_, i) => (
+                        <Card key={i} style={{ padding: '16px', backgroundColor: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                            <div style={{ height: '180px', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px', marginBottom: '16px' }}>
+                                <Skeleton style={{ width: '100%', height: '100%' }}>
+                                    <SkeletonItem shape="rectangle" style={{ width: '100%', height: '100%' }} />
+                                </Skeleton>
+                            </div>
+                            <Skeleton>
+                                <SkeletonItem size={16} style={{ width: '80%', marginBottom: '8px' }} />
+                                <SkeletonItem size={16} style={{ width: '60%' }} />
+                            </Skeleton>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     if (error) {
         return (

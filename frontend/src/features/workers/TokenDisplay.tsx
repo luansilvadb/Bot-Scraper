@@ -5,6 +5,7 @@ import {
     Button,
     Text,
     Tooltip,
+    shorthands,
 } from '@fluentui/react-components';
 import { Copy20Regular, Checkmark20Regular } from '@fluentui/react-icons';
 import { useClipboard } from '../../hooks/useClipboard';
@@ -13,17 +14,16 @@ const useStyles = makeStyles({
     container: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
+        ...shorthands.gap(tokens.spacingVerticalS),
     },
     tokenRow: {
         display: 'flex',
-        gap: '8px',
+        ...shorthands.gap(tokens.spacingHorizontalS),
         alignItems: 'center',
     },
     tokenInput: {
         flex: 1,
-        fontFamily: 'monospace',
-        letterSpacing: '0.5px',
+        fontFamily: tokens.fontFamilyMonospace,
     },
     copyButton: {
         minWidth: '100px',
@@ -42,7 +42,7 @@ const useStyles = makeStyles({
     fallbackContainer: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '4px',
+        ...shorthands.gap(tokens.spacingVerticalXXS),
     },
     fallbackLabel: {
         fontSize: tokens.fontSizeBase200,

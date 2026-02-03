@@ -7,13 +7,15 @@ import {
     Badge,
     Button,
     makeStyles,
+    shorthands,
     tokens,
     Menu,
     MenuTrigger,
     MenuPopover,
     MenuList,
     MenuItem,
-    Spinner,
+    Skeleton,
+    SkeletonItem,
     ProgressBar,
 } from '@fluentui/react-components';
 import {
@@ -37,9 +39,15 @@ const useStyles = makeStyles({
         width: '320px',
         maxWidth: '100%',
         height: 'fit-content',
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        ...shorthands.border('1px', 'solid', 'rgba(255, 255, 255, 0.06)'),
+        transition: 'background-color 0.3s ease',
+        ':hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        },
     },
     header: {
-        marginBottom: '12px',
+        marginBottom: tokens.spacingVerticalM,
     },
     textWhite: {
         color: tokens.colorNeutralForeground1,
@@ -50,8 +58,8 @@ const useStyles = makeStyles({
     stats: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '4px',
-        marginTop: '12px',
+        ...shorthands.gap(tokens.spacingVerticalXXS),
+        marginTop: tokens.spacingVerticalM,
     },
     statRow: {
         display: 'flex',
@@ -61,33 +69,65 @@ const useStyles = makeStyles({
     badgeRow: {
         display: 'flex',
         alignItems: 'center',
-        gap: '8px',
-        marginBottom: '4px',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+        marginBottom: tokens.spacingVerticalXXS,
     },
     footer: {
         display: 'flex',
         justifyContent: 'flex-end',
-        gap: '8px',
-        marginTop: '12px',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+        marginTop: tokens.spacingVerticalM,
     },
     tokenSection: {
-        marginTop: '12px',
-        padding: '12px',
+        marginTop: tokens.spacingVerticalM,
+        ...shorthands.padding(tokens.spacingHorizontalM),
         backgroundColor: tokens.colorNeutralBackground2,
-        borderRadius: tokens.borderRadiusMedium,
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
     },
     tokenHeader: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '8px',
+        marginBottom: tokens.spacingVerticalS,
     },
     progressContainer: {
-        marginTop: '8px',
+        marginTop: tokens.spacingVerticalS,
     },
     progressLabel: {
         fontSize: tokens.fontSizeBase200,
         color: tokens.colorNeutralForeground3,
+    },
+    headerWrapper: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+    },
+    statsFooter: {
+        marginTop: tokens.spacingVerticalL,
+        paddingTop: tokens.spacingVerticalM,
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+        display: 'flex',
+        ...shorthands.gap(tokens.spacingHorizontalL),
+    },
+    statBox: {
+        flex: 1,
+    },
+    statLabel: {
+        display: 'block',
+        fontSize: tokens.fontSizeBase100,
+        fontWeight: tokens.fontWeightSemibold,
+        color: tokens.colorNeutralForeground2,
+    },
+    statValueSuccess: {
+        fontSize: tokens.fontSizeBase500,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorStatusSuccessForeground1,
+    },
+    statValueDanger: {
+        fontSize: tokens.fontSizeBase500,
+        fontWeight: tokens.fontWeightBold,
+        color: tokens.colorStatusDangerForeground1,
     },
 });
 
@@ -189,7 +229,7 @@ export function WorkerCard({ worker }: WorkerCardProps) {
             <Card className={styles.card}>
                 <CardHeader
                     header={
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                        <div className={styles.headerWrapper}>
                             <Text weight="semibold" className={styles.textWhite}>{worker.name}</Text>
                             <Badge appearance="filled" color={getStatusColor(worker.status)}>
                                 {worker.status}
@@ -219,18 +259,18 @@ export function WorkerCard({ worker }: WorkerCardProps) {
                     </div>
                     <div className={styles.statRow}>
                         <Text size={200} className={styles.textSubtle}>Uptime</Text>
-                        <Text size={200}>{formatUptime(worker.stats?.uptime || 0)}</Text>
+                        <Text size={200} weight="medium">{formatUptime(worker.stats?.uptime || 0)}</Text>
                     </div>
-                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: `1px solid ${tokens.colorNeutralStroke2}` }}>
-                        <div className={styles.statRow}>
-                            <Text size={200} weight="semibold">Completed</Text>
-                            <Text size={200} style={{ color: tokens.colorStatusSuccessForeground1 }}>
+                    <div className={styles.statsFooter}>
+                        <div className={styles.statBox}>
+                            <Text className={styles.statLabel}>COMPLETED</Text>
+                            <Text className={styles.statValueSuccess}>
                                 {worker.stats?.tasksCompleted || 0}
                             </Text>
                         </div>
-                        <div className={styles.statRow}>
-                            <Text size={200} weight="semibold">Failed</Text>
-                            <Text size={200} style={{ color: tokens.colorStatusDangerForeground1 }}>
+                        <div className={styles.statBox}>
+                            <Text className={styles.statLabel}>FAILED</Text>
+                            <Text className={styles.statValueDanger}>
                                 {worker.stats?.tasksFailed || 0}
                             </Text>
                         </div>
@@ -252,7 +292,11 @@ export function WorkerCard({ worker }: WorkerCardProps) {
                             </Button>
                         </div>
                         {isLoadingToken ? (
-                            <Spinner size="tiny" label="Loading token..." />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <Skeleton>
+                                    <SkeletonItem shape="rectangle" style={{ width: '100%', height: '32px', borderRadius: '4px' }} />
+                                </Skeleton>
+                            </div>
                         ) : tokenData?.token ? (
                             <>
                                 <TokenDisplay token={tokenData.token} size="small" />
