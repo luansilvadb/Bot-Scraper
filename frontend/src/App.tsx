@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
+import { DashboardHome } from './features/dashboard/DashboardHome';
 import { BotList } from './features/bots/BotList';
 import { ProductList } from './features/products/ProductList';
 import { SettingsPage } from './features/settings/SettingsPage';
@@ -10,7 +11,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<AppShell />}>
-          <Route index element={<div>Dashboard Home</div>} />
+          <Route index element={<DashboardHome />} />
           <Route path="bots" element={<BotList />} />
           <Route path="workers" element={<WorkerList />} />
           <Route path="approval" element={<ProductList />} />

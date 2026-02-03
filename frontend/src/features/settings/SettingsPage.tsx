@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-    Subtitle1,
     Button,
     makeStyles,
     shorthands,
@@ -11,6 +10,9 @@ import {
     Toast,
     ToastTitle,
     useId,
+    Card,
+    Title3,
+    Text,
 } from '@fluentui/react-components';
 import {
     Search20Regular,
@@ -35,19 +37,23 @@ const useStyles = makeStyles({
     container: {
         display: 'flex',
         flexDirection: 'column',
-        ...shorthands.gap('24px'),
+        ...shorthands.gap(tokens.spacingVerticalXL),
+    },
+    card: {
+        ...shorthands.padding(tokens.spacingHorizontalXL),
     },
     header: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        ...shorthands.gap('16px'),
+        ...shorthands.gap(tokens.spacingHorizontalM),
+        marginBottom: tokens.spacingVerticalXL,
     },
     headerLeft: {
         display: 'flex',
         alignItems: 'center',
-        ...shorthands.gap('16px'),
+        ...shorthands.gap(tokens.spacingHorizontalM),
     },
     searchContainer: {
         minWidth: '250px',
@@ -55,12 +61,24 @@ const useStyles = makeStyles({
     tableContainer: {
         backgroundColor: tokens.colorNeutralBackground1,
         ...shorthands.borderRadius(tokens.borderRadiusMedium),
-        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
-        ...shorthands.padding('16px'),
+        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    },
+    errorContainer: {
+        color: tokens.colorStatusDangerForeground1,
+        ...shorthands.padding(tokens.spacingVerticalXL),
+        textAlign: 'center',
+    },
+    headerText: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap(tokens.spacingVerticalXXS),
+    },
+    subtitle: {
+        color: tokens.colorNeutralForeground2,
     },
     actions: {
         display: 'flex',
-        ...shorthands.gap('4px'),
+        ...shorthands.gap(tokens.spacingHorizontalXXS),
     },
     valueCell: {
         color: tokens.colorNeutralForeground2,
@@ -149,7 +167,11 @@ export const SettingsPage: React.FC = () => {
     );
 
     if (error) {
-        return <div style={{ color: 'red' }}>Error: {error.message}</div>;
+        return (
+            <div className={styles.errorContainer}>
+                <Text weight="semibold">Error loading settings: {error.message}</Text>
+            </div>
+        );
     }
 
     const settings = (data?.data ?? []).map(s => ({ ...s, id: s.key }));
@@ -159,39 +181,46 @@ export const SettingsPage: React.FC = () => {
         <div className={styles.container}>
             <Toaster toasterId={toasterId} />
 
-            <div className={styles.header}>
-                <div className={styles.headerLeft}>
-                    <Subtitle1>System Settings</Subtitle1>
-                    <div className={styles.searchContainer}>
-                        <Input
-                            placeholder="Search keys..."
-                            value={search}
-                            onChange={(_, d) => {
-                                setSearch(d.value);
-                                setPage(1);
-                            }}
-                            contentBefore={<Search20Regular />}
-                        />
+            <Card className={styles.card}>
+                <div className={styles.header}>
+                    <div className={styles.headerText}>
+                        <Title3>System Settings</Title3>
+                        <Text size={300} className={styles.subtitle}>
+                            Global configuration for bots and scrapers
+                        </Text>
+                    </div>
+                    <div className={styles.headerLeft}>
+                        <div className={styles.searchContainer}>
+                            <Input
+                                placeholder="Search keys..."
+                                value={search}
+                                onChange={(_, d) => {
+                                    setSearch(d.value);
+                                    setPage(1);
+                                }}
+                                contentBefore={<Search20Regular />}
+                            />
+                        </div>
+                        <CreateSettingModal />
                     </div>
                 </div>
-                <CreateSettingModal />
-            </div>
 
-            <div className={styles.tableContainer}>
-                <DataTable
-                    columns={columns as any}
-                    data={settings}
-                    meta={meta}
-                    isLoading={isLoading}
-                    emptyMessage="No settings found."
-                    onPageChange={setPage}
-                    onLimitChange={(newLimit) => {
-                        setLimit(newLimit);
-                        setPage(1);
-                    }}
-                    actions={renderActions as any}
-                />
-            </div>
+                <div className={styles.tableContainer}>
+                    <DataTable
+                        columns={columns as any}
+                        data={settings}
+                        meta={meta}
+                        isLoading={isLoading}
+                        emptyMessage="No settings found."
+                        onPageChange={setPage}
+                        onLimitChange={(newLimit) => {
+                            setLimit(newLimit);
+                            setPage(1);
+                        }}
+                        actions={renderActions as any}
+                    />
+                </div>
+            </Card>
 
 
 

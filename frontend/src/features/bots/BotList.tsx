@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
     Badge,
     Button,
-    Subtitle1,
     makeStyles,
     shorthands,
     tokens,
@@ -13,6 +12,9 @@ import {
     ToastTitle,
     ToastBody,
     useId,
+    Card,
+    Title3,
+    Text,
 } from '@fluentui/react-components';
 import {
     Edit20Regular,
@@ -32,14 +34,28 @@ const useStyles = makeStyles({
     container: {
         display: 'flex',
         flexDirection: 'column',
-        ...shorthands.gap('24px'),
+        ...shorthands.gap(tokens.spacingVerticalXL),
+    },
+    card: {
+        ...shorthands.padding(tokens.spacingHorizontalXL),
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        ...shorthands.border('1px', 'solid', 'rgba(255, 255, 255, 0.06)'),
     },
     header: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        ...shorthands.gap('16px'),
+        ...shorthands.gap(tokens.spacingHorizontalM),
+        marginBottom: tokens.spacingVerticalXL,
+    },
+    headerText: {
+        display: 'flex',
+        flexDirection: 'column',
+        ...shorthands.gap(tokens.spacingVerticalXXS),
+    },
+    subtitle: {
+        color: tokens.colorNeutralForeground2,
     },
     headerLeft: {
         display: 'flex',
@@ -49,16 +65,45 @@ const useStyles = makeStyles({
     searchContainer: {
         minWidth: '250px',
     },
+    controlsRight: {
+        display: 'flex',
+        ...shorthands.gap(tokens.spacingHorizontalM),
+    },
+    controls: {
+        display: 'flex',
+        alignItems: 'center',
+        ...shorthands.gap(tokens.spacingHorizontalM),
+    },
     tableContainer: {
-        backgroundColor: tokens.colorNeutralBackground1,
-        ...shorthands.borderRadius(tokens.borderRadiusMedium),
-        ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
-        ...shorthands.padding('16px'),
+        marginTop: tokens.spacingVerticalM,
     },
     actions: {
         display: 'flex',
-        ...shorthands.gap('4px'),
+        alignItems: 'center',
+        ...shorthands.gap('6px'),
+        justifyContent: 'flex-end',
     },
+    deleteAction: {
+        ':hover': {
+            color: tokens.colorStatusDangerForeground1,
+            backgroundColor: 'rgba(255, 0, 0, 0.1)',
+        },
+    },
+    urlText: {
+        maxWidth: '200px',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        display: 'block',
+        color: tokens.colorNeutralForeground3,
+    },
+    errorContainer: {
+        color: tokens.colorStatusDangerForeground1,
+        ...shorthands.padding('24px'),
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        ...shorthands.gap('16px'),
+    }
 });
 
 export function BotList() {
@@ -147,7 +192,7 @@ export function BotList() {
             key: 'targetUrl',
             header: 'Target URL',
             render: (bot) => (
-                <span style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
+                <span className={styles.urlText}>
                     {bot.targetUrl}
                 </span>
             ),
@@ -165,6 +210,7 @@ export function BotList() {
             <Button
                 icon={<Search20Regular />}
                 size="small"
+                appearance="subtle"
                 title="Scrape Now"
                 onClick={() => handleTrigger(bot)}
                 disabled={triggerBot.isPending}
@@ -172,12 +218,14 @@ export function BotList() {
             <Button
                 icon={<Play20Regular />}
                 size="small"
+                appearance="subtle"
                 title="Run"
                 disabled={bot.status === 'ACTIVE'}
             />
             <Button
                 icon={<Edit20Regular />}
                 size="small"
+                appearance="subtle"
                 title="Edit"
                 onClick={() => setEditingBot(bot)}
             />
@@ -186,6 +234,7 @@ export function BotList() {
                 size="small"
                 appearance="subtle"
                 title="Delete"
+                className={styles.deleteAction}
                 onClick={() => setDeletingBot(bot)}
             />
         </div>
@@ -193,8 +242,9 @@ export function BotList() {
 
     if (error) {
         return (
-            <div style={{ color: 'red', padding: '1rem' }}>
-                Error loading bots: {error.message}
+            <div className={styles.errorContainer}>
+                <Text weight="semibold">Error loading bots: {error.message}</Text>
+                <Button onClick={() => window.location.reload()}>Retry</Button>
             </div>
         );
     }
@@ -207,39 +257,47 @@ export function BotList() {
         <div className={styles.container}>
             <Toaster toasterId={toasterId} />
 
-            <div className={styles.header}>
-                <div className={styles.headerLeft}>
-                    <Subtitle1>Managed Bots</Subtitle1>
-                    <div className={styles.searchContainer}>
-                        <Input
-                            placeholder="Search bots..."
-                            value={search}
-                            onChange={(_, d) => {
-                                setSearch(d.value);
-                                setPage(1);
-                            }}
-                            contentBefore={<Search20Regular />}
-                        />
+            <Card className={styles.card}>
+                <div className={styles.header}>
+                    <div className={styles.headerText}>
+                        <Title3>Managed Bots</Title3>
+                        <Text size={300} className={styles.subtitle}>
+                            Configure and monitor your scraping automation
+                        </Text>
+                    </div>
+                    <div className={styles.controls}>
+                        <div className={styles.controlsRight}>
+                            <Input
+                                placeholder="Search bots..."
+                                value={search}
+                                onChange={(_, d) => {
+                                    setSearch(d.value);
+                                    setPage(1);
+                                }}
+                                contentBefore={<Search20Regular />}
+                                className={styles.searchContainer}
+                            />
+                            <CreateBotModal />
+                        </div>
                     </div>
                 </div>
-                <CreateBotModal />
-            </div>
 
-            <div className={styles.tableContainer}>
-                <DataTable
-                    columns={columns}
-                    data={bots}
-                    meta={meta}
-                    isLoading={isLoading}
-                    emptyMessage="No bots found. Create your first bot!"
-                    onPageChange={setPage}
-                    onLimitChange={(newLimit) => {
-                        setLimit(newLimit);
-                        setPage(1);
-                    }}
-                    actions={renderActions}
-                />
-            </div>
+                <div className={styles.tableContainer}>
+                    <DataTable
+                        columns={columns}
+                        data={bots}
+                        meta={meta}
+                        isLoading={isLoading}
+                        emptyMessage="No bots found. Create your first bot!"
+                        onPageChange={setPage}
+                        onLimitChange={(newLimit) => {
+                            setLimit(newLimit);
+                            setPage(1);
+                        }}
+                        actions={renderActions}
+                    />
+                </div>
+            </Card>
 
             {/* Edit Modal */}
             {editingBot && (

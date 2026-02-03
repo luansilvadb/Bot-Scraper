@@ -1,68 +1,122 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* New Design System */
+  --radius: 0.5rem;
+  --background: oklch(0.982 0 180);
+  --foreground: oklch(0.084 0.015 348.404);
+  --muted: oklch(0.953 0 198.435);
+  --muted-foreground: oklch(0.605 0 180);
+  --popover: oklch(1 0 180);
+  --popover-foreground: oklch(0.218 0 180);
+  --card: oklch(1 0 180);
+  --card-foreground: oklch(0.256 0 180);
+  --border: oklch(0.851 0 180);
+  --input: oklch(0.851 0 180);
+  --primary: oklch(0.603 0.218 257.42);
+  --primary-foreground: oklch(1 0 180);
+  --secondary: oklch(0.888 0 172.405);
+  --secondary-foreground: oklch(0.216 0 180);
+  --accent: oklch(0.603 0.218 257.42);
+  --accent-foreground: oklch(1 0 180);
+  --destructive: oklch(0.654 0.232 28.66);
+  --destructive-foreground: oklch(1 0 180);
+  --ring: oklch(0.683 0 180);
+  --chart-1: oklch(0.603 0.218 257.42);
+  --chart-2: oklch(0.888 0 172.405);
+  --chart-3: oklch(0.603 0.218 257.42);
+  --chart-4: oklch(0.912 0 190.305);
+  --chart-5: oklch(0.605 0.223 257.702);
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Fallback/Derived Sidebar Variables from new theme */
+  --sidebar: oklch(0.982 0 180);
+  /* Matches background */
+  --sidebar-foreground: oklch(0.084 0.015 348.404);
+  --sidebar-primary: oklch(0.603 0.218 257.42);
+  --sidebar-primary-foreground: oklch(1 0 180);
+  --sidebar-accent: oklch(0.603 0.218 257.42);
+  --sidebar-accent-foreground: oklch(1 0 180);
+  --sidebar-border: oklch(0.851 0 180);
+  --sidebar-ring: oklch(0.683 0 180);
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Preserved Structural Variables */
+  --font-sans: Open Sans, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --shadow-x: 0px;
+  --shadow-y: 2px;
+  --shadow-blur: 0px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0;
+  --shadow-color: rgba(29, 161, 242, 0.15);
+  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+.dark {
+  /* New Design System */
+  --radius: 0.5rem;
+  --background: oklch(0.288 0.01 260.707);
+  --foreground: oklch(0.983 0.004 348.851);
+  --muted: oklch(0.246 0.007 248.122);
+  --muted-foreground: oklch(0.689 0 164.055);
+  --popover: oklch(0.246 0.007 248.122);
+  --popover-foreground: oklch(0.983 0.004 348.851);
+  --card: oklch(0.246 0.007 248.122);
+  --card-foreground: oklch(0.983 0.004 348.851);
+  --border: oklch(0.305 0 171.87);
+  --input: oklch(0.389 0.008 255.543);
+  --primary: oklch(0.647 0.124 270.623);
+  --primary-foreground: oklch(1 0 180);
+  --secondary: oklch(0.389 0.008 255.543);
+  --secondary-foreground: oklch(1 0 180);
+  --accent: oklch(0.288 0.01 260.707);
+  --accent-foreground: oklch(0.647 0.124 270.623);
+  --destructive: oklch(0.588 0.199 24.393);
+  --destructive-foreground: oklch(1 0 180);
+  --ring: oklch(0.288 0.01 260.707);
+  --chart-1: oklch(0.647 0.124 270.623);
+  --chart-2: oklch(0.389 0.008 255.543);
+  --chart-3: oklch(0.288 0.01 260.707);
+  --chart-4: oklch(0.417 0.009 255.544);
+  --chart-5: oklch(0.644 0.131 270.422);
+
+  /* Fallback/Derived Sidebar Variables from new theme */
+  --sidebar: oklch(0.246 0.007 248.122);
+  /* Matches card/dark bg */
+  --sidebar-foreground: oklch(0.983 0.004 348.851);
+  --sidebar-primary: oklch(0.647 0.124 270.623);
+  --sidebar-primary-foreground: oklch(1 0 180);
+  --sidebar-accent: oklch(0.288 0.01 260.707);
+  --sidebar-accent-foreground: oklch(0.647 0.124 270.623);
+  --sidebar-border: oklch(0.305 0 171.87);
+  --sidebar-ring: oklch(0.288 0.01 260.707);
+
+  /* Persist shadows/fonts in dark mode if they were different (they weren't, except shadow colors) */
+  --font-sans: Open Sans, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --shadow-color: rgba(29, 161, 242, 0.25);
+  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
 }
 
 body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
   min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }

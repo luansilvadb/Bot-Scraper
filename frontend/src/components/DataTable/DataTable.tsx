@@ -6,12 +6,121 @@ import {
     TableBody,
     TableCell,
     Button,
-    Spinner,
+    Skeleton,
+    SkeletonItem,
     Input,
     Select,
+    Text,
+    makeStyles,
+    shorthands,
+    tokens
 } from '@fluentui/react-components';
 import { ChevronLeft24Regular, ChevronRight24Regular } from '@fluentui/react-icons';
 import type { ReactNode } from 'react';
+
+const useStyles = makeStyles({
+    container: {
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'rgba(255, 255, 255, 0.015)',
+        ...shorthands.border('1px', 'solid', 'rgba(255, 255, 255, 0.06)'),
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        overflow: 'hidden',
+        backdropFilter: 'blur(10px)',
+    },
+    controls: {
+        display: 'flex',
+        ...shorthands.gap(tokens.spacingHorizontalM),
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
+        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    },
+    searchInput: {
+        maxWidth: '300px',
+        flex: 1,
+    },
+    tableWrapper: {
+        overflowX: 'auto',
+        maxWidth: '100%',
+    },
+    table: {
+        minWidth: '600px',
+        width: '100%',
+    },
+    emptyCell: {
+        textAlign: 'center',
+        ...shorthands.padding(tokens.spacingVerticalXXL),
+        color: tokens.colorNeutralForeground4,
+    },
+    loadingContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        ...shorthands.padding(tokens.spacingVerticalXXL),
+    },
+    headerRow: {
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+    },
+    headerCell: {
+        fontWeight: tokens.fontWeightSemibold,
+        ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
+        color: tokens.colorNeutralForeground2,
+        fontSize: '11px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em',
+    },
+    cell: {
+        ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
+        fontSize: tokens.fontSizeBase300,
+        color: tokens.colorNeutralForeground1,
+    },
+    actionCell: {
+        width: '120px',
+        textAlign: 'right',
+        ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
+    },
+    actionCellData: {
+        width: '120px',
+        textAlign: 'right',
+        ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
+    },
+    tableRow: {
+        transition: 'background-color 0.2s ease',
+        cursor: 'default',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.03)',
+        ':hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        },
+        ':last-child': {
+            borderBottom: '0',
+        }
+    },
+    pagination: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
+        flexWrap: 'wrap',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+        borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    },
+    paginationInfo: {
+        color: tokens.colorNeutralForeground2,
+        fontSize: tokens.fontSizeBase200,
+    },
+    paginationControls: {
+        display: 'flex',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+        alignItems: 'center',
+    },
+    pageText: {
+        color: tokens.colorNeutralForeground1,
+        fontWeight: tokens.fontWeightSemibold,
+    }
+});
 
 export interface Column<T> {
     key: keyof T | string;
@@ -54,24 +163,18 @@ export function DataTable<T extends { id: string }>({
     searchPlaceholder = 'Search...',
     actions,
 }: DataTableProps<T>) {
-    if (isLoading) {
-        return (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
-                <Spinner size="large" label="Loading..." />
-            </div>
-        );
-    }
+    const styles = useStyles();
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className={styles.container}>
             {/* Search and Controls */}
             {onSearchChange && (
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div className={styles.controls}>
                     <Input
                         placeholder={searchPlaceholder}
                         value={searchValue || ''}
                         onChange={(_, data) => onSearchChange(data.value)}
-                        style={{ maxWidth: '300px', flex: 1 }}
+                        className={styles.searchInput}
                     />
                     {onLimitChange && (
                         <Select
@@ -88,38 +191,57 @@ export function DataTable<T extends { id: string }>({
             )}
 
             {/* Table Container */}
-            <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
-                <Table aria-label="Data table" style={{ minWidth: '600px' }}>
+            <div className={styles.tableWrapper}>
+                <Table aria-label="Data table" className={styles.table}>
                     <TableHeader>
-                        <TableRow>
+                        <TableRow className={styles.headerRow}>
                             {columns.map((col) => (
-                                <TableHeaderCell key={String(col.key)} style={{ width: col.width }}>
+                                <TableHeaderCell key={String(col.key)} className={styles.headerCell} style={{ width: col.width }}>
                                     {col.header}
                                 </TableHeaderCell>
                             ))}
-                            {actions && <TableHeaderCell style={{ width: '100px' }}>Actions</TableHeaderCell>}
+                            {actions && <TableHeaderCell className={styles.actionCell}>Actions</TableHeaderCell>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {data.length === 0 ? (
+                        {isLoading ? (
+                            [...Array(5)].map((_, i) => (
+                                <TableRow key={i} className={styles.tableRow}>
+                                    {columns.map((col) => (
+                                        <TableCell key={String(col.key)} className={styles.cell}>
+                                            <Skeleton>
+                                                <SkeletonItem size={16} style={{ width: '80%' }} />
+                                            </Skeleton>
+                                        </TableCell>
+                                    ))}
+                                    {actions && (
+                                        <TableCell className={styles.actionCellData}>
+                                            <Skeleton>
+                                                <SkeletonItem shape="circle" size={24} />
+                                            </Skeleton>
+                                        </TableCell>
+                                    )}
+                                </TableRow>
+                            ))
+                        ) : data.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={columns.length + (actions ? 1 : 0)}>
-                                    <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+                                    <div className={styles.emptyCell}>
                                         {emptyMessage}
                                     </div>
                                 </TableCell>
                             </TableRow>
                         ) : (
                             data.map((item) => (
-                                <TableRow key={item.id}>
+                                <TableRow key={item.id} className={styles.tableRow}>
                                     {columns.map((col) => (
-                                        <TableCell key={String(col.key)}>
+                                        <TableCell key={String(col.key)} className={styles.cell}>
                                             {col.render
                                                 ? col.render(item)
-                                                : String((item as Record<string, unknown>)[col.key as string] ?? '')}
+                                                : <Text size={300}>{String((item as Record<string, unknown>)[col.key as string] ?? '')}</Text>}
                                         </TableCell>
                                     ))}
-                                    {actions && <TableCell>{actions(item)}</TableCell>}
+                                    {actions && <TableCell className={styles.actionCellData}>{actions(item)}</TableCell>}
                                 </TableRow>
                             ))
                         )}
@@ -129,28 +251,19 @@ export function DataTable<T extends { id: string }>({
 
             {/* Pagination */}
             {meta && onPageChange && (
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '0.5rem 0',
-                        flexWrap: 'wrap',
-                        gap: '0.5rem'
-                    }}
-                >
-                    <span style={{ color: '#666', fontSize: '0.875rem' }}>
+                <div className={styles.pagination}>
+                    <span className={styles.paginationInfo}>
                         Showing {(meta.page - 1) * meta.limit + 1} to{' '}
                         {Math.min(meta.page * meta.limit, meta.total)} of {meta.total} items
                     </span>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div className={styles.paginationControls}>
                         <Button
                             icon={<ChevronLeft24Regular />}
                             disabled={meta.page <= 1}
                             onClick={() => onPageChange(meta.page - 1)}
                             appearance="subtle"
                         />
-                        <span>
+                        <span className={styles.pageText}>
                             Page {meta.page} of {meta.totalPages}
                         </span>
                         <Button

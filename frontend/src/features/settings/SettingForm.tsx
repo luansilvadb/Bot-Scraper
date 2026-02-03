@@ -6,6 +6,7 @@ import {
     Button,
     makeStyles,
     shorthands,
+    tokens,
 } from '@fluentui/react-components';
 import type { SystemSetting } from './api';
 
@@ -13,14 +14,14 @@ const useStyles = makeStyles({
     form: {
         display: 'flex',
         flexDirection: 'column',
-        ...shorthands.gap('16px'),
-        paddingTop: '16px',
+        ...shorthands.gap(tokens.spacingVerticalM),
+        paddingTop: tokens.spacingVerticalM,
     },
     actions: {
         display: 'flex',
         justifyContent: 'flex-end',
-        ...shorthands.gap('8px'),
-        paddingTop: '8px',
+        ...shorthands.gap(tokens.spacingHorizontalS),
+        paddingTop: tokens.spacingVerticalS,
     },
 });
 
@@ -81,8 +82,8 @@ export const SettingForm: React.FC<SettingFormProps> = ({
             >
                 <Input
                     value={formData.key}
-                    onChange={(e) => {
-                        setFormData({ ...formData, key: e.target.value.toUpperCase() });
+                    onChange={(_, data) => {
+                        setFormData({ ...formData, key: data.value.toUpperCase() });
                         if (errors.key) setErrors({ ...errors, key: undefined });
                     }}
                     placeholder="E.g. TELEGRAM_TOKEN"
@@ -98,8 +99,8 @@ export const SettingForm: React.FC<SettingFormProps> = ({
             >
                 <Textarea
                     value={formData.value}
-                    onChange={(e) => {
-                        setFormData({ ...formData, value: e.target.value });
+                    onChange={(_, data) => {
+                        setFormData({ ...formData, value: data.value });
                         if (errors.value) setErrors({ ...errors, value: undefined });
                     }}
                     placeholder="Enter value..."

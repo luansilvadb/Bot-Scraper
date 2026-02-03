@@ -47,7 +47,6 @@ TypeScript 5.x (Node.js 20 LTS "Iron" or 22 "Hydrogen"): Follow standard convent
 ## Recent Changes
 - 016-worker-to-nestjs: Added TypeScript 5.3+ (Node.js 18+ Iron/Hydrogen)
 - 016-worker-to-nestjs: Added TypeScript 5.3+ (Node.js 18+ Iron/Hydrogen)
-- 014-fix-token-input: Added TypeScript 5.x, React 18.x (Worker App) + `@fluentui/react-components` (UI), `electron` (Runtime)
 
 
 <!-- MANUAL ADDITIONS START -->

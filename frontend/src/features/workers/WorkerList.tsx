@@ -1,9 +1,12 @@
 import {
     makeStyles,
+    shorthands,
     tokens,
     Title3,
     Button,
-    Spinner,
+    Skeleton,
+    SkeletonItem,
+    Card,
     Input,
     Text,
 } from '@fluentui/react-components';
@@ -23,27 +26,31 @@ const useStyles = makeStyles({
     container: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '24px',
-        padding: '24px',
+        ...shorthands.gap(tokens.spacingVerticalXL),
+        ...shorthands.padding(tokens.spacingVerticalXL),
         height: '100%',
         boxSizing: 'border-box',
     },
-    header: {
+    card: {
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    headerRow: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '16px',
+        marginBottom: tokens.spacingVerticalXL,
     },
     controls: {
         display: 'flex',
-        gap: '12px',
+        ...shorthands.gap(tokens.spacingHorizontalM),
         alignItems: 'center',
     },
     grid: {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-        gap: '24px',
+        ...shorthands.gap(tokens.spacingHorizontalXL),
         width: '100%',
     },
     emptyState: {
@@ -51,13 +58,33 @@ const useStyles = makeStyles({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '48px',
-        gap: '16px',
+        ...shorthands.padding(tokens.spacingVerticalXXXL),
+        ...shorthands.gap(tokens.spacingHorizontalM),
         color: tokens.colorNeutralForeground2,
-        backgroundColor: tokens.colorNeutralBackground1,
-        borderRadius: tokens.borderRadiusMedium,
-        border: `1px dashed ${tokens.colorNeutralStroke1}`,
+        backgroundColor: tokens.colorNeutralBackground2, // Use Card background
+        ...shorthands.borderRadius(tokens.borderRadiusMedium),
+        ...shorthands.border('1px', 'dashed', tokens.colorNeutralStroke1),
     },
+    emptyStateText: {
+        textAlign: 'center',
+        maxWidth: '300px',
+    },
+    emptyStateIcon: {
+        fontSize: '48px',
+        marginBottom: '8px',
+    },
+    registerButton: {
+        marginTop: tokens.spacingVerticalM,
+    },
+    spinnerContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        ...shorthands.padding(tokens.spacingVerticalXXXL),
+    },
+    subtitle: {
+        color: tokens.colorNeutralForeground2,
+        marginTop: tokens.spacingVerticalXXS,
+    }
 });
 
 export function WorkerList() {
@@ -104,8 +131,13 @@ export function WorkerList() {
 
     return (
         <div className={styles.container}>
-            <div className={styles.header}>
-                <Title3>Local Workers</Title3>
+            <div className={styles.headerRow}>
+                <div>
+                    <Title3>Local Workers</Title3>
+                    <Text block size={300} className={styles.subtitle}>
+                        Manage your distributed scraping nodes
+                    </Text>
+                </div>
                 <div className={styles.controls}>
                     <Input
                         placeholder="Search workers..."
@@ -130,17 +162,49 @@ export function WorkerList() {
             </div>
 
             {isLoading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}>
-                    <Spinner label="Loading workers..." />
+                <div className={styles.grid}>
+                    {[...Array(6)].map((_, i) => (
+                        <Card key={i} style={{ padding: '16px', minHeight: '300px', backgroundColor: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                <Skeleton>
+                                    <SkeletonItem size={20} style={{ width: '120px' }} />
+                                </Skeleton>
+                                <Skeleton>
+                                    <SkeletonItem size={24} style={{ width: '60px', borderRadius: '12px' }} />
+                                </Skeleton>
+                            </div>
+                            <Skeleton>
+                                <SkeletonItem size={12} style={{ width: '40%', marginBottom: '24px' }} />
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                                    <SkeletonItem shape="circle" size={16} />
+                                    <SkeletonItem size={16} style={{ width: '60%' }} />
+                                </div>
+                                <SkeletonItem size={12} style={{ width: '80%', marginBottom: '8px' }} />
+                                <SkeletonItem size={12} style={{ width: '70%', marginBottom: '8px' }} />
+                                <SkeletonItem size={12} style={{ width: '90%', marginBottom: '24px' }} />
+                            </Skeleton>
+                            <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
+                                <SkeletonItem shape="rectangle" style={{ flexGrow: 1, height: '32px', borderRadius: '4px' }} />
+                                <SkeletonItem shape="rectangle" style={{ width: '32px', height: '32px', borderRadius: '4px' }} />
+                            </div>
+                        </Card>
+                    ))}
                 </div>
             ) : filteredWorkers.length === 0 ? (
                 <div className={styles.emptyState}>
-                    <Text size={400} weight="semibold">No Workers Found</Text>
-                    <Text>
-                        {search ? "Try adjusting your search filters." : "Register a new local worker to get started."}
+                    <div className={styles.emptyStateIcon}>🔍</div>
+                    <Text size={500} weight="semibold">No Workers Found</Text>
+                    <Text className={styles.emptyStateText}>
+                        {search ? `We couldn't find any workers matching "${search}".` : "Register a new local worker node to start scraping at scale."}
                     </Text>
                     {!search && (
-                        <Button appearance="primary" onClick={() => setIsRegistering(true)}>
+                        <Button
+                            appearance="primary"
+                            size="large"
+                            icon={<Add20Regular />}
+                            onClick={() => setIsRegistering(true)}
+                            className={styles.registerButton}
+                        >
                             Register First Worker
                         </Button>
                     )}

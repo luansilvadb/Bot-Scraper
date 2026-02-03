@@ -11,6 +11,7 @@ import {
     tokens,
     MessageBar,
     MessageBarBody,
+    shorthands,
 } from '@fluentui/react-components';
 import { Warning24Regular } from '@fluentui/react-icons';
 
@@ -18,13 +19,13 @@ const useStyles = makeStyles({
     content: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
-        paddingTop: '8px',
+        ...shorthands.gap(tokens.spacingVerticalM),
+        paddingTop: tokens.spacingVerticalXS,
     },
     warningSection: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
+        ...shorthands.gap(tokens.spacingVerticalS),
     },
     bulletList: {
         margin: '0',
@@ -32,7 +33,11 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground2,
     },
     bulletItem: {
-        marginBottom: '4px',
+        marginBottom: tokens.spacingVerticalXXS,
+    },
+    surface: {
+        width: '90%',
+        maxWidth: '480px',
     },
 });
 
@@ -63,7 +68,7 @@ export function RegenerateTokenDialog({
 
     return (
         <Dialog open={open} modalType="alert">
-            <DialogSurface>
+            <DialogSurface className={styles.surface}>
                 <DialogBody>
                     <DialogTitle>Regenerate Token?</DialogTitle>
                     <DialogContent className={styles.content}>

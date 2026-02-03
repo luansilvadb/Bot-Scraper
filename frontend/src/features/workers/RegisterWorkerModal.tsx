@@ -9,6 +9,8 @@ import {
     Input,
     Label,
     makeStyles,
+    shorthands,
+    tokens,
 } from '@fluentui/react-components';
 import { useState } from 'react';
 import { useRegisterWorker } from './api';
@@ -17,8 +19,12 @@ const useStyles = makeStyles({
     content: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
-        paddingTop: '12px',
+        ...shorthands.gap(tokens.spacingVerticalM),
+        paddingTop: tokens.spacingVerticalM,
+    },
+    surface: {
+        width: '90%',
+        maxWidth: '440px',
     },
 });
 
@@ -50,7 +56,7 @@ export function RegisterWorkerModal({ open, onOpenChange, onSuccess }: RegisterW
 
     return (
         <Dialog open={open} onOpenChange={(_, data) => onOpenChange(data.open)}>
-            <DialogSurface>
+            <DialogSurface className={styles.surface}>
                 <DialogBody>
                     <DialogTitle>Register New Worker</DialogTitle>
                     <DialogContent className={styles.content}>

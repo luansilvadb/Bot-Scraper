@@ -13,11 +13,19 @@ import {
     ToastTitle,
     ToastBody,
     useId,
+    makeStyles,
 } from '@fluentui/react-components';
 import { Add24Regular } from '@fluentui/react-icons';
 import { BotForm } from './BotForm';
 import { useCreateBot } from './api';
 import type { CreateBotInput, UpdateBotInput } from './api';
+
+const useStyles = makeStyles({
+    surface: {
+        width: '90%',
+        maxWidth: '560px',
+    },
+});
 
 export function CreateBotModal() {
     const [isOpen, setIsOpen] = useState(false);
@@ -54,6 +62,8 @@ export function CreateBotModal() {
         setIsOpen(false);
     };
 
+    const styles = useStyles();
+
     return (
         <>
             <Toaster toasterId={toasterId} />
@@ -63,7 +73,7 @@ export function CreateBotModal() {
                         Create Bot
                     </Button>
                 </DialogTrigger>
-                <DialogSurface style={{ width: '90%', maxWidth: '500px' }}>
+                <DialogSurface className={styles.surface}>
                     <DialogBody>
                         <DialogTitle>Create New Bot</DialogTitle>
                         <DialogContent>

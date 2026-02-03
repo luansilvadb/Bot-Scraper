@@ -163,9 +163,26 @@ export function useTasks() {
     return useQuery({
         queryKey: taskKeys.lists(),
         queryFn: async () => {
-            const { data } = await api.get<{ data: ScrapingTask[], meta: any }>('/api/tasks');
-            // TasksController usually returns standard paginated response { data, meta }
-            return data.data || [];
+            const { data } = await api.get('/api/tasks');
+            
+            // API interceptor already unwraps the envelope, so data is the paginated response
+            const items = data?.items || [];
+            
+            // Map backend fields to frontend expected fields
+            return items.map((task: any): ScrapingTask => ({
+                id: task.id,
+                targetUrl: task.productUrl,
+                priority: task.priority,
+                status: task.status === 'IN_PROGRESS' ? 'IN_PROGRESS' :
+                    task.status === 'PENDING' ? 'PENDING' :
+                        task.status === 'COMPLETED' ? 'COMPLETED' :
+                            task.status === 'FAILED' ? 'FAILED' :
+                                task.status === 'PERMANENTLY_FAILED' ? 'FAILED' : 'PENDING',
+                createdAt: task.createdAt,
+                attempts: task.attemptCount,
+                workerId: task.assignedWorkerId,
+                workerName: task.assignedWorker?.name,
+            }));
         },
         refetchInterval: 3000,
     });

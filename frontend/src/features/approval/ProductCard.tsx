@@ -21,6 +21,12 @@ const useStyles = makeStyles({
         width: '300px',
         maxWidth: '100%',
         height: 'fit-content',
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        ...shorthands.border('1px', 'solid', 'rgba(255, 255, 255, 0.06)'),
+        transition: 'background-color 0.3s ease',
+        ':hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        }
     },
     preview: {
         height: '200px',
