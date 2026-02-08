@@ -1,83 +1,93 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../../lib/api';
+/**
+ * Settings API - Refactored to use useEntityApi
+ */
 
-// Types
-export interface SystemSetting {
-    key: string;
-    value: string;
+import { useEntityApi } from '../../hooks/useEntityApi';
+import type { Entity } from '../../types';
+
+export interface SystemSetting extends Entity {
+  key: string;
+  value: string;
+  name: string;
+  description?: string;
+  type: 'string' | 'number' | 'boolean' | 'json';
+  category?: string;
+  isSecret?: boolean;
 }
 
 export interface SettingQueryParams {
-    page?: number;
-    limit?: number;
-    search?: string;
+  page?: number;
+  pageSize?: number;
+  search?: string;
 }
 
-interface PaginatedResponse<T> {
-    data: T[];
-    meta: {
-        total: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-    };
-}
-
-// Query keys
 export const settingKeys = {
-    all: ['settings'] as const,
-    lists: () => [...settingKeys.all, 'list'] as const,
-    list: (params: SettingQueryParams) => [...settingKeys.lists(), params] as const,
-    details: () => [...settingKeys.all, 'detail'] as const,
-    detail: (key: string) => [...settingKeys.details(), key] as const,
+  all: ['settings'] as const,
+  lists: () => [...settingKeys.all, 'list'] as const,
+  list: (params: SettingQueryParams) => [...settingKeys.lists(), params] as const,
+  details: () => [...settingKeys.all, 'detail'] as const,
+  detail: (key: string) => [...settingKeys.details(), key] as const,
 };
 
-// Hooks
+/**
+ * Hook for settings list with pagination
+ */
 export function useSettings(params: SettingQueryParams = {}) {
-    return useQuery({
-        queryKey: settingKeys.list(params),
-        queryFn: async () => {
-            const { data } = await api.get<PaginatedResponse<SystemSetting>>('/settings', { params });
-            return data;
-        },
-    });
+  return useEntityApi<SystemSetting>({
+    endpoint: '/settings',
+    queryKey: settingKeys.all,
+    pagination: { pageSize: params.pageSize || 20, enabled: true },
+  });
 }
 
+/**
+ * Hook for single setting
+ */
 export function useSetting(key: string) {
-    return useQuery({
-        queryKey: settingKeys.detail(key),
-        queryFn: async () => {
-            const { data } = await api.get<SystemSetting>(`/settings/${key}`);
-            return data;
-        },
-        enabled: !!key,
-    });
+  const api = useEntityApi<SystemSetting>({
+    endpoint: '/settings',
+    queryKey: settingKeys.all,
+    enabled: !!key,
+  });
+  return api.useOne(key);
 }
 
+/**
+ * Hook for upsert setting (create or update)
+ */
 export function useUpsertSetting() {
-    const queryClient = useQueryClient();
+  const { create, update } = useEntityApi<SystemSetting>({
+    endpoint: '/settings',
+    queryKey: settingKeys.all,
+  });
 
-    return useMutation({
-        mutationFn: async (input: SystemSetting) => {
-            const { data } = await api.post<SystemSetting>('/settings', input);
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: settingKeys.all });
-        },
-    });
+  return {
+    mutate: async (input: SystemSetting) => {
+      // Settings use key as identifier, try update first, then create
+      try {
+        await update.mutateAsync({ id: input.key, data: input });
+      } catch {
+        await create.mutateAsync(input);
+      }
+    },
+    isPending: create.isPending || update.isPending,
+    isSuccess: create.isSuccess || update.isSuccess,
+    isError: create.isError || update.isError,
+    error: create.error || update.error,
+    reset: () => {
+      create.reset();
+      update.reset();
+    },
+  };
 }
 
+/**
+ * Hook for delete setting
+ */
 export function useDeleteSetting() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (key: string) => {
-            await api.delete(`/settings/${key}`);
-            return key;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: settingKeys.all });
-        },
-    });
+  const { remove } = useEntityApi<SystemSetting>({
+    endpoint: '/settings',
+    queryKey: settingKeys.all,
+  });
+  return remove;
 }
