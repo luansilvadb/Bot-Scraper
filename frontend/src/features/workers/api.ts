@@ -1,190 +1,180 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../../lib/api';
+/**
+ * Workers API - Refactored to use useEntityApi
+ */
 
-// Types
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEntityApi } from '../../hooks/useEntityApi';
+import { api } from '../../lib/api';
+import type { Entity } from '../../types';
+
 export interface NetworkInfo {
-    externalIp: string;
-    ispName: string;
-    lastCheckedAt: string;
+  externalIp: string;
+  ispName: string;
+  lastCheckedAt: string;
 }
 
 export interface WorkerStats {
-    tasksCompleted: number;
-    tasksFailed: number;
-    uptime: number; // in seconds
+  tasksCompleted: number;
+  tasksFailed: number;
+  uptime: number;
 }
 
-export interface LocalWorker {
-    id: string;
-    name: string;
-    token: string;
-    status: 'CONNECTED' | 'DISCONNECTED' | 'BLOCKED';
-    lastSeenAt: string;
-    registeredAt: string;
-    networkInfo?: NetworkInfo;
-    stats: WorkerStats;
+export interface LocalWorker extends Entity {
+  name: string;
+  description?: string;
+  token: string;
+  status: 'CONNECTED' | 'DISCONNECTED' | 'BLOCKED';
+  lastSeenAt: string;
+  registeredAt: string;
+  networkInfo?: NetworkInfo;
+  stats: WorkerStats;
 }
 
 export interface RegisterWorkerInput {
-    name: string;
+  name: string;
 }
 
 export interface WorkerQueryParams {
-    status?: 'CONNECTED' | 'DISCONNECTED' | 'BLOCKED';
+  status?: 'CONNECTED' | 'DISCONNECTED' | 'BLOCKED';
+  page?: number;
+  pageSize?: number;
 }
 
-// Query Keys
-export const workerKeys = {
-    all: ['workers'] as const,
-    lists: () => [...workerKeys.all, 'list'] as const,
-    list: (params: WorkerQueryParams) => [...workerKeys.lists(), params] as const,
-    details: () => [...workerKeys.all, 'detail'] as const,
-    detail: (id: string) => [...workerKeys.details(), id] as const,
-};
-
-// Hooks
-export function useWorkers(params: WorkerQueryParams = {}) {
-    return useQuery({
-        queryKey: workerKeys.list(params),
-        queryFn: async () => {
-            const { data } = await api.get<LocalWorker[]>('/api/workers', { params });
-            // The backend returns an array directly, not PaginatedData for this endpoint yet
-            return data;
-        },
-        refetchInterval: 5000, // Poll every 5s for real-time updates (fallback for WebSocket)
-    });
-}
-
-export function useWorker(id: string) {
-    return useQuery({
-        queryKey: workerKeys.detail(id),
-        queryFn: async () => {
-            const { data } = await api.get<LocalWorker>(`/api/workers/${id}`);
-            return data;
-        },
-        enabled: !!id,
-        refetchInterval: 5000,
-    });
-}
-
-export function useRegisterWorker() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (input: RegisterWorkerInput) => {
-            const { data } = await api.post<LocalWorker>('/api/workers', input);
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: workerKeys.lists() });
-        },
-    });
-}
-
-export function useDeleteWorker() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (id: string) => {
-            await api.delete(`/api/workers/${id}`);
-            return id;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: workerKeys.lists() });
-        },
-    });
-}
-
-// Token Management Types
 export interface RegenerateTokenResponse {
-    token: string;
-    regeneratedAt: string;
+  token: string;
+  regeneratedAt: string;
 }
 
 export interface GetTokenResponse {
-    token: string;
+  token: string;
 }
 
-/**
- * Hook to regenerate a worker's token.
- * The old token is immediately invalidated.
- */
-export function useRegenerateToken() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (id: string) => {
-            const { data } = await api.post<RegenerateTokenResponse>(
-                `/api/workers/${id}/regenerate-token`
-            );
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: workerKeys.lists() });
-        },
-    });
-}
-
-/**
- * Hook to get a worker's current token.
- * Use sparingly - prefer regeneration for lost tokens.
- */
-export function useGetWorkerToken(id: string, options: { enabled?: boolean } = {}) {
-    return useQuery({
-        queryKey: [...workerKeys.detail(id), 'token'] as const,
-        queryFn: async () => {
-            const { data } = await api.get<GetTokenResponse>(`/api/workers/${id}/token`);
-            return data;
-        },
-        enabled: options.enabled ?? true,
-        staleTime: 0, // Always refetch when requested
-        gcTime: 0, // Don't cache (sensitive data)
-    });
-}
-
-// Tasks
 export interface ScrapingTask {
-    id: string;
-    targetUrl: string;
-    priority: number;
-    status: 'PENDING' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
-    createdAt: string;
-    attempts: number;
-    workerId?: string;
-    workerName?: string;
+  id: string;
+  targetUrl: string;
+  priority: number;
+  status: 'PENDING' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+  createdAt: string;
+  attempts: number;
+  workerId?: string;
+  workerName?: string;
 }
 
-export const taskKeys = {
-    all: ['tasks'] as const,
-    lists: () => [...taskKeys.all, 'list'] as const,
+export const workerKeys = {
+  all: ['workers'] as const,
+  lists: () => [...workerKeys.all, 'list'] as const,
+  list: (params: WorkerQueryParams) => [...workerKeys.lists(), params] as const,
+  details: () => [...workerKeys.all, 'detail'] as const,
+  detail: (id: string) => [...workerKeys.details(), id] as const,
 };
 
-export function useTasks() {
-    return useQuery({
-        queryKey: taskKeys.lists(),
-        queryFn: async () => {
-            const { data } = await api.get('/api/tasks');
-            
-            // API interceptor already unwraps the envelope, so data is the paginated response
-            const items = data?.items || [];
-            
-            // Map backend fields to frontend expected fields
-            return items.map((task: any): ScrapingTask => ({
-                id: task.id,
-                targetUrl: task.productUrl,
-                priority: task.priority,
-                status: task.status === 'IN_PROGRESS' ? 'IN_PROGRESS' :
-                    task.status === 'PENDING' ? 'PENDING' :
-                        task.status === 'COMPLETED' ? 'COMPLETED' :
-                            task.status === 'FAILED' ? 'FAILED' :
-                                task.status === 'PERMANENTLY_FAILED' ? 'FAILED' : 'PENDING',
-                createdAt: task.createdAt,
-                attempts: task.attemptCount,
-                workerId: task.assignedWorkerId,
-                workerName: task.assignedWorker?.name,
-            }));
-        },
-        refetchInterval: 3000,
-    });
+export const taskKeys = {
+  all: ['tasks'] as const,
+  lists: () => [...taskKeys.all, 'list'] as const,
+};
+
+/**
+ * Hook for workers list
+ */
+export function useWorkers(params: WorkerQueryParams = {}) {
+  return useEntityApi<LocalWorker, RegisterWorkerInput>({
+    endpoint: '/api/workers',
+    queryKey: workerKeys.all,
+    pagination: { pageSize: params.pageSize || 20, enabled: false }, // Workers doesn't support pagination yet
+  });
 }
 
+/**
+ * Hook for single worker
+ */
+export function useWorker(id: string) {
+  const api = useEntityApi<LocalWorker, RegisterWorkerInput>({
+    endpoint: '/api/workers',
+    queryKey: workerKeys.all,
+    enabled: !!id,
+  });
+  return api.useOne(id);
+}
+
+/**
+ * Hook for register worker
+ */
+export function useRegisterWorker() {
+  const { create } = useEntityApi<LocalWorker, RegisterWorkerInput>({
+    endpoint: '/api/workers',
+    queryKey: workerKeys.all,
+  });
+  return create;
+}
+
+/**
+ * Hook for delete worker
+ */
+export function useDeleteWorker() {
+  const { remove } = useEntityApi<LocalWorker, RegisterWorkerInput>({
+    endpoint: '/api/workers',
+    queryKey: workerKeys.all,
+  });
+  return remove;
+}
+
+/**
+ * Hook for regenerate token
+ */
+export function useRegenerateToken() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post<RegenerateTokenResponse>(`/api/workers/${id}/regenerate-token`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workerKeys.all });
+    },
+  });
+}
+
+/**
+ * Hook for get worker token
+ */
+export function useGetWorkerToken(id: string, options: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: [...workerKeys.detail(id), 'token'] as const,
+    queryFn: async () => {
+      const { data } = await api.get<GetTokenResponse>(`/api/workers/${id}/token`);
+      return data;
+    },
+    enabled: options.enabled ?? true,
+    staleTime: 0,
+    gcTime: 0,
+  });
+}
+
+/**
+ * Hook for tasks
+ */
+export function useTasks() {
+  return useQuery({
+    queryKey: taskKeys.lists(),
+    queryFn: async () => {
+      const { data } = await api.get('/api/tasks');
+      const items = data?.items || [];
+      return items.map((task: Record<string, unknown>): ScrapingTask => ({
+        id: task.id as string,
+        targetUrl: task.productUrl as string,
+        priority: task.priority as number,
+        status: task.status === 'IN_PROGRESS' ? 'IN_PROGRESS' :
+                task.status === 'PENDING' ? 'PENDING' :
+                task.status === 'COMPLETED' ? 'COMPLETED' :
+                task.status === 'FAILED' ? 'FAILED' :
+                task.status === 'PERMANENTLY_FAILED' ? 'FAILED' : 'PENDING',
+        createdAt: task.createdAt as string,
+        attempts: task.attemptCount as number,
+        workerId: task.assignedWorkerId as string | undefined,
+        workerName: (task.assignedWorker as Record<string, string> | undefined)?.name,
+      }));
+    },
+    refetchInterval: 3000,
+  });
+}

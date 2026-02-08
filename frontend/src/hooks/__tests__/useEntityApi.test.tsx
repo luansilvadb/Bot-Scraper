@@ -17,6 +17,8 @@ vi.mock('../../lib/api', () => ({
 interface TestEntity {
   id: string;
   name: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const createWrapper = () => {
@@ -40,89 +42,79 @@ describe('useEntityApi', () => {
     vi.clearAllMocks();
   });
 
-  it('should create hooks factory', () => {
-    const entityApi = useEntityApi<TestEntity>({
-      endpoint: '/api/test',
-      entityKey: 'test',
-    });
+  it('should return query state and mutations', () => {
+    const wrapper = createWrapper();
+    const { result } = renderHook(
+      () => useEntityApi<TestEntity>({
+        endpoint: '/api/test',
+        queryKey: ['test'],
+      }),
+      { wrapper }
+    );
 
-    expect(entityApi.useList).toBeDefined();
-    expect(entityApi.useOne).toBeDefined();
-    expect(entityApi.useCreate).toBeDefined();
-    expect(entityApi.useUpdate).toBeDefined();
-    expect(entityApi.useDelete).toBeDefined();
+    expect(result.current.data).toBeNull();
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.create).toBeDefined();
+    expect(result.current.update).toBeDefined();
+    expect(result.current.remove).toBeDefined();
+    expect(result.current.useOne).toBeDefined();
   });
 
   it('should fetch list', async () => {
-    const mockData = [{ id: '1', name: 'Test' }];
+    const mockData = [{ id: '1', name: 'Test', createdAt: new Date(), updatedAt: new Date() }];
     vi.mocked(api.get).mockResolvedValueOnce({ data: mockData });
 
-    const entityApi = useEntityApi<TestEntity>({
-      endpoint: '/api/test',
-      entityKey: 'test',
-    });
-
     const wrapper = createWrapper();
-    const { result } = renderHook(() => entityApi.useList(), { wrapper });
+    const { result } = renderHook(
+      () => useEntityApi<TestEntity>({
+        endpoint: '/api/test',
+        queryKey: ['test'],
+      }),
+      { wrapper }
+    );
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    
     expect(result.current.data).toEqual(mockData);
-    expect(api.get).toHaveBeenCalledWith('/api/test');
-  });
-
-  it('should fetch single entity', async () => {
-    const mockData = { id: '1', name: 'Test' };
-    vi.mocked(api.get).mockResolvedValueOnce({ data: mockData });
-
-    const entityApi = useEntityApi<TestEntity>({
-      endpoint: '/api/test',
-      entityKey: 'test',
-    });
-
-    const wrapper = createWrapper();
-    const { result } = renderHook(() => entityApi.useOne('1'), { wrapper });
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-    expect(result.current.data).toEqual(mockData);
-    expect(api.get).toHaveBeenCalledWith('/api/test/1');
+    expect(api.get).toHaveBeenCalledWith('/api/test', { params: {} });
   });
 
   it('should create entity', async () => {
-    const mockData = { id: '1', name: 'Test' };
+    const mockData = { id: '1', name: 'Test', createdAt: new Date(), updatedAt: new Date() };
     vi.mocked(api.post).mockResolvedValueOnce({ data: mockData });
 
-    const entityApi = useEntityApi<TestEntity>({
-      endpoint: '/api/test',
-      entityKey: 'test',
-    });
-
     const wrapper = createWrapper();
-    const { result } = renderHook(() => entityApi.useCreate(), { wrapper });
+    const { result } = renderHook(
+      () => useEntityApi<TestEntity>({
+        endpoint: '/api/test',
+        queryKey: ['test'],
+      }),
+      { wrapper }
+    );
 
-    result.current.mutate({ name: 'Test' } as Omit<TestEntity, 'id'>);
+    result.current.create.mutate({ name: 'Test' } as Omit<TestEntity, 'id' | 'createdAt' | 'updatedAt'>);
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await waitFor(() => expect(result.current.create.isSuccess).toBe(true));
 
     expect(api.post).toHaveBeenCalledWith('/api/test', { name: 'Test' });
   });
 
   it('should update entity', async () => {
-    const mockData = { id: '1', name: 'Updated' };
+    const mockData = { id: '1', name: 'Updated', createdAt: new Date(), updatedAt: new Date() };
     vi.mocked(api.patch).mockResolvedValueOnce({ data: mockData });
 
-    const entityApi = useEntityApi<TestEntity>({
-      endpoint: '/api/test',
-      entityKey: 'test',
-    });
-
     const wrapper = createWrapper();
-    const { result } = renderHook(() => entityApi.useUpdate(), { wrapper });
+    const { result } = renderHook(
+      () => useEntityApi<TestEntity>({
+        endpoint: '/api/test',
+        queryKey: ['test'],
+      }),
+      { wrapper }
+    );
 
-    result.current.mutate({ id: '1', data: { name: 'Updated' } });
+    result.current.update.mutate({ id: '1', data: { name: 'Updated' } });
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await waitFor(() => expect(result.current.update.isSuccess).toBe(true));
 
     expect(api.patch).toHaveBeenCalledWith('/api/test/1', { name: 'Updated' });
   });
@@ -130,18 +122,47 @@ describe('useEntityApi', () => {
   it('should delete entity', async () => {
     vi.mocked(api.delete).mockResolvedValueOnce({});
 
-    const entityApi = useEntityApi<TestEntity>({
-      endpoint: '/api/test',
-      entityKey: 'test',
-    });
-
     const wrapper = createWrapper();
-    const { result } = renderHook(() => entityApi.useDelete(), { wrapper });
+    const { result } = renderHook(
+      () => useEntityApi<TestEntity>({
+        endpoint: '/api/test',
+        queryKey: ['test'],
+      }),
+      { wrapper }
+    );
 
-    result.current.mutate('1');
+    result.current.remove.mutate('1');
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await waitFor(() => expect(result.current.remove.isSuccess).toBe(true));
 
     expect(api.delete).toHaveBeenCalledWith('/api/test/1');
+  });
+
+  it('should support pagination', async () => {
+    const mockData = {
+      data: [{ id: '1', name: 'Test', createdAt: new Date(), updatedAt: new Date() }],
+      total: 1,
+      page: 1,
+      pageSize: 10,
+      totalPages: 1,
+    };
+    vi.mocked(api.get).mockResolvedValueOnce({ data: mockData });
+
+    const wrapper = createWrapper();
+    const { result } = renderHook(
+      () => useEntityApi<TestEntity>({
+        endpoint: '/api/test',
+        queryKey: ['test'],
+        pagination: { pageSize: 10, enabled: true },
+      }),
+      { wrapper }
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.pagination).toBeDefined();
+    expect(result.current.pagination?.page).toBe(1);
+    expect(result.current.pagination?.pageSize).toBe(10);
+    expect(result.current.pagination?.total).toBe(1);
   });
 });

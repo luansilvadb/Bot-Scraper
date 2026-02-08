@@ -1,0 +1,45 @@
+
+> frontend@0.0.0 lint
+> eslint .
+
+
+D:\Bot-Scraper\frontend\src\components\layout\ListPane.tsx
+  107:21  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+D:\Bot-Scraper\frontend\src\components\layout\ListPane.tsx:107:21
+  105 | const parentRef = React.useRef<HTMLDivElement>(null);
+  106 |
+> 107 | const virtualizer = useVirtualizer({
+      |                     ^^^^^^^^^^^^^^ TanStack Virtual's `useVirtualizer()` API returns functions that cannot be memoized safely
+  108 | count: items.length,
+  109 | getScrollElement: () => parentRef.current,
+  110 | estimateSize: () => ITEM_HEIGHT,  react-hooks/incompatible-library
+
+D:\Bot-Scraper\frontend\src\context\ThemeContext.tsx
+  99:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\Bot-Scraper\frontend\src\features\approval\ApprovalGrid.tsx
+  96:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Bot-Scraper\frontend\src\features\approval\ProductCard.tsx
+  60:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Bot-Scraper\frontend\src\features\settings\SettingsPage.tsx
+  119:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  135:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  210:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  220:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Bot-Scraper\frontend\src\features\workers\api.ts
+  172:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Bot-Scraper\frontend\src\hooks\useClipboard.ts
+  39:18  error  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Bot-Scraper\frontend\src\main.tsx
+  11:7  error  Fast refresh only works when a file has exports. Move your component(s) to a separate file  react-refresh/only-export-components
+
+✖ 11 problems (10 errors, 1 warning)
+

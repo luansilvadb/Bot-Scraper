@@ -1,4 +1,4 @@
-# Bot-Scraper Developer Guidelines
+﻿# Bot-Scraper Developer Guidelines
 
 This file is a merged representation of the entire codebase, combined into a single document by Repomix.
 The content has been processed where security check has been disabled.
@@ -252,6 +252,8 @@ export interface LocalWorker {
 ---
 
 ## Active Technologies
+- TypeScript 5.9.3 (strict mode) + React 19.2.0, Fluent UI React Components 9.72.11, TanStack React Query 5.90.20, React Router DOM 7.13.0, Axios 1.13.4, Vite 7.2.4 (020-frontend-refactor)
+- N/A (frontend consome API NestJS backend) (020-frontend-refactor)
 
 - TypeScript 5.x + React 18.x + Fluent UI (019-frontend-refactor)
 - Vite + React Query + Axios (019-frontend-refactor)
@@ -261,4 +263,4 @@ export interface LocalWorker {
 - 019-frontend-refactor: Added custom hooks (useForm, useModal, useEntityApi) and reusable components (FormModal, FormSection, CardSkeleton, StatusBadge)
 - 019-frontend-refactor: Target 15% LoC reduction through component abstraction
 
-**Last updated**: 2025-02-08
+**Last updated**: 2026-02-08

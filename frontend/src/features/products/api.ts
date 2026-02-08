@@ -1,214 +1,211 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../../lib/api';
+/**
+ * Products API - Refactored to use useEntityApi
+ */
 
-// Types
-export interface Product {
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEntityApi } from '../../hooks/useEntityApi';
+import { api } from '../../lib/api';
+import type { Entity } from '../../types';
+
+export interface Product extends Entity {
+  name: string;
+  description?: string;
+  asin: string;
+  title: string;
+  currentPrice: number;
+  originalPrice: number;
+  discountPercentage: number;
+  imageUrl: string;
+  productUrl: string;
+  status: 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'POSTED';
+  botId: string | null;
+  bot?: {
     id: string;
-    asin: string;
-    title: string;
-    currentPrice: number;
-    originalPrice: number;
-    discountPercentage: number;
-    imageUrl: string;
-    productUrl: string;
-    status: 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'POSTED';
-    botId: string | null;
-    bot?: {
-        id: string;
-        name: string;
-    } | null;
-    foundAt: string;
-    expiresAt: string | null;
+    name: string;
+  } | null;
+  foundAt: string;
+  expiresAt: string | null;
 }
 
 export interface CreateProductInput {
-    asin: string;
-    title: string;
-    currentPrice: number;
-    originalPrice: number;
-    discountPercentage: number;
-    imageUrl: string;
-    productUrl: string;
-    botId?: string;
-    expiresAt?: string;
+  asin: string;
+  title: string;
+  currentPrice: number;
+  originalPrice: number;
+  discountPercentage: number;
+  imageUrl: string;
+  productUrl: string;
+  botId?: string;
+  expiresAt?: string;
 }
 
 export interface UpdateProductInput {
-    title?: string;
-    currentPrice?: number;
-    originalPrice?: number;
-    discountPercentage?: number;
-    imageUrl?: string;
-    productUrl?: string;
-    status?: Product['status'];
-    expiresAt?: string | null;
+  title?: string;
+  currentPrice?: number;
+  originalPrice?: number;
+  discountPercentage?: number;
+  imageUrl?: string;
+  productUrl?: string;
+  status?: Product['status'];
+  expiresAt?: string | null;
 }
 
 export interface ProductQueryParams {
-    page?: number;
-    limit?: number;
-    status?: Product['status'];
-    botId?: string;
-    minDiscount?: number;
-    search?: string;
+  page?: number;
+  pageSize?: number;
+  status?: Product['status'];
+  botId?: string;
+  minDiscount?: number;
+  search?: string;
 }
 
 export interface BulkResult {
-    updated: number;
-    skipped: number;
+  updated: number;
+  skipped: number;
 }
 
-interface PaginatedResponse<T> {
-    data: T[];
-    meta: {
-        total: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-    };
-}
-
-// Query keys
 export const productKeys = {
-    all: ['products'] as const,
-    lists: () => [...productKeys.all, 'list'] as const,
-    list: (params: ProductQueryParams) => [...productKeys.lists(), params] as const,
-    details: () => [...productKeys.all, 'detail'] as const,
-    detail: (id: string) => [...productKeys.details(), id] as const,
-    pending: () => [...productKeys.all, 'pending'] as const,
+  all: ['products'] as const,
+  lists: () => [...productKeys.all, 'list'] as const,
+  list: (params: ProductQueryParams) => [...productKeys.lists(), params] as const,
+  details: () => [...productKeys.all, 'detail'] as const,
+  detail: (id: string) => [...productKeys.details(), id] as const,
+  pending: () => [...productKeys.all, 'pending'] as const,
 };
 
-// Hooks
+/**
+ * Hook for products list with pagination
+ */
 export function useProducts(params: ProductQueryParams = {}) {
-    return useQuery({
-        queryKey: productKeys.list(params),
-        queryFn: async () => {
-            const { data } = await api.get<PaginatedResponse<Product>>('/products', { params });
-            return data;
-        },
-    });
+  return useEntityApi<Product, CreateProductInput>({
+    endpoint: '/products',
+    queryKey: productKeys.all,
+    pagination: { pageSize: params.pageSize || 20, enabled: true },
+  });
 }
 
+/**
+ * Hook for pending products
+ */
 export function usePendingProducts() {
-    return useQuery({
-        queryKey: productKeys.pending(),
-        queryFn: async () => {
-            const { data } = await api.get<Product[]>('/products/pending');
-            return data;
-        },
-    });
+  return useQuery({
+    queryKey: productKeys.pending(),
+    queryFn: async () => {
+      const { data } = await api.get<Product[]>('/products/pending');
+      return data;
+    },
+  });
 }
 
+/**
+ * Hook for single product
+ */
 export function useProduct(id: string) {
-    return useQuery({
-        queryKey: productKeys.detail(id),
-        queryFn: async () => {
-            const { data } = await api.get<Product>(`/products/${id}`);
-            return data;
-        },
-        enabled: !!id,
-    });
+  const api = useEntityApi<Product, CreateProductInput>({
+    endpoint: '/products',
+    queryKey: productKeys.all,
+    enabled: !!id,
+  });
+  return api.useOne(id);
 }
 
+/**
+ * Hook for create product
+ */
 export function useCreateProduct() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (input: CreateProductInput) => {
-            const { data } = await api.post<Product>('/products', input);
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-        },
-    });
+  const { create } = useEntityApi<Product, CreateProductInput>({
+    endpoint: '/products',
+    queryKey: productKeys.all,
+  });
+  return create;
 }
 
+/**
+ * Hook for update product
+ */
 export function useUpdateProduct() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async ({ id, ...input }: UpdateProductInput & { id: string }) => {
-            const { data } = await api.patch<Product>(`/products/${id}`, input);
-            return data;
-        },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-            queryClient.invalidateQueries({ queryKey: productKeys.detail(data.id) });
-            queryClient.invalidateQueries({ queryKey: productKeys.pending() });
-        },
-    });
+  const { update } = useEntityApi<Product, CreateProductInput>({
+    endpoint: '/products',
+    queryKey: productKeys.all,
+  });
+  return update;
 }
 
+/**
+ * Hook for delete product
+ */
 export function useDeleteProduct() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (id: string) => {
-            await api.delete(`/products/${id}`);
-            return id;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-            queryClient.invalidateQueries({ queryKey: productKeys.pending() });
-        },
-    });
+  const { remove } = useEntityApi<Product, CreateProductInput>({
+    endpoint: '/products',
+    queryKey: productKeys.all,
+  });
+  return remove;
 }
 
+/**
+ * Hook for approve product
+ */
 export function useApproveProduct() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (id: string) => {
-            const { data } = await api.post<Product>(`/products/${id}/approve`);
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-            queryClient.invalidateQueries({ queryKey: productKeys.pending() });
-        },
-    });
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post<Product>(`/products/${id}/approve`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+    },
+  });
 }
 
+/**
+ * Hook for reject product
+ */
 export function useRejectProduct() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (id: string) => {
-            const { data } = await api.post<Product>(`/products/${id}/reject`);
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-            queryClient.invalidateQueries({ queryKey: productKeys.pending() });
-        },
-    });
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post<Product>(`/products/${id}/reject`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+    },
+  });
 }
 
+/**
+ * Hook for bulk approve
+ */
 export function useBulkApprove() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (ids: string[]) => {
-            const { data } = await api.post<BulkResult>('/products/bulk/approve', { ids });
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: productKeys.all });
-        },
-    });
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { data } = await api.post<BulkResult>('/products/bulk/approve', { ids });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+    },
+  });
 }
 
+/**
+ * Hook for bulk reject
+ */
 export function useBulkReject() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (ids: string[]) => {
-            const { data } = await api.post<BulkResult>('/products/bulk/reject', { ids });
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: productKeys.all });
-        },
-    });
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { data } = await api.post<BulkResult>('/products/bulk/reject', { ids });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+    },
+  });
 }
