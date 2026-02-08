@@ -10,8 +10,8 @@ import {
 } from '@fluentui/react-components';
 import { useTasks } from './api';
 import type { ScrapingTask } from './api';
-import { DataTable } from '../../components/DataTable/DataTable';
-import type { Column } from '../../components/DataTable/DataTable';
+import { DataTable } from '../../components/DataTable';
+import type { Column } from '../../components/DataTable';
 import { Open20Regular } from '@fluentui/react-icons';
 
 const useStyles = makeStyles({

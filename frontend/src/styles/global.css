@@ -1,0 +1,60 @@
+/**
+ * Global Styles: Teams-Style UI Refactor
+ * Font family: Segoe UI with fallbacks for Microsoft Teams consistency
+ */
+
+:root {
+  /* Teams Typography - Segoe UI font stack */
+  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-mono: 'Segoe UI Mono', 'Cascadia Mono', 'Consolas', monospace;
+
+  /* Animation preferences */
+  --motion-duration-fast: 0.15s;
+  --motion-duration-normal: 0.25s;
+  --motion-duration-slow: 0.35s;
+  --motion-easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
+  --motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Base typography */
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+/* Remove focus outline on mouse click, keep for keyboard navigation */
+*:focus {
+  outline: none;
+}
+
+/* Focus visible styles for keyboard accessibility */
+*:focus-visible {
+  outline: 2px solid var(--colorBrandStroke1, #6264a7);
+  outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--colorBrandBackground2, #e0e0ff);
+  color: var(--colorNeutralForeground1, #1a1a1a);
+}

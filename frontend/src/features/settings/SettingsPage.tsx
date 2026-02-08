@@ -213,10 +213,10 @@ export const SettingsPage: React.FC = () => {
                         isLoading={isLoading}
                         emptyMessage="No settings found."
                         onPageChange={setPage}
-                        onLimitChange={(newLimit) => {
-                            setLimit(newLimit);
-                            setPage(1);
-                        }}
+onLimitChange={(newLimit: number) => {
+setLimit(newLimit);
+setPage(1);
+}}
                         actions={renderActions as any}
                     />
                 </div>

@@ -46,16 +46,16 @@ const useStyles = makeStyles({
     },
 });
 
-interface ConfirmDialogProps {
-    open: boolean;
-    title: string;
-    message: string;
-    confirmLabel?: string;
-    cancelLabel?: string;
-    variant?: 'danger' | 'warning' | 'default';
-    isLoading?: boolean;
-    onConfirm: () => void;
-    onCancel: () => void;
+export interface ConfirmDialogProps {
+open: boolean;
+title: string;
+message: string;
+confirmLabel?: string;
+cancelLabel?: string;
+variant?: 'danger' | 'warning' | 'default';
+isLoading?: boolean;
+onConfirm: () => void;
+onCancel: () => void;
 }
 
 export function ConfirmDialog({

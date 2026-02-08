@@ -37,8 +37,8 @@
   --sidebar-border: oklch(0.851 0 180);
   --sidebar-ring: oklch(0.683 0 180);
 
-  /* Preserved Structural Variables */
-  --font-sans: Open Sans, sans-serif;
+/* Preserved Structural Variables */
+  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
   --shadow-x: 0px;
@@ -98,8 +98,8 @@
   --sidebar-border: oklch(0.305 0 171.87);
   --sidebar-ring: oklch(0.288 0.01 260.707);
 
-  /* Persist shadows/fonts in dark mode if they were different (they weren't, except shadow colors) */
-  --font-sans: Open Sans, sans-serif;
+/* Persist shadows/fonts in dark mode if they were different (they weren't, except shadow colors) */
+  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
   --shadow-color: rgba(29, 161, 242, 0.25);

@@ -290,10 +290,10 @@ export function BotList() {
                         isLoading={isLoading}
                         emptyMessage="No bots found. Create your first bot!"
                         onPageChange={setPage}
-                        onLimitChange={(newLimit) => {
-                            setLimit(newLimit);
-                            setPage(1);
-                        }}
+onLimitChange={(newLimit: number) => {
+setLimit(newLimit);
+setPage(1);
+}}
                         actions={renderActions}
                     />
                 </div>

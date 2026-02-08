@@ -136,18 +136,18 @@ export interface PaginationMeta {
     totalPages: number;
 }
 
-interface DataTableProps<T> {
-    columns: Column<T>[];
-    data: T[];
-    meta?: PaginationMeta;
-    isLoading?: boolean;
-    emptyMessage?: string;
-    onPageChange?: (page: number) => void;
-    onLimitChange?: (limit: number) => void;
-    searchValue?: string;
-    onSearchChange?: (value: string) => void;
-    searchPlaceholder?: string;
-    actions?: (item: T) => ReactNode;
+export interface DataTableProps<T> {
+columns: Column<T>[];
+data: T[];
+meta?: PaginationMeta;
+isLoading?: boolean;
+emptyMessage?: string;
+onPageChange?: (page: number) => void;
+onLimitChange?: (limit: number) => void;
+searchValue?: string;
+onSearchChange?: (value: string) => void;
+searchPlaceholder?: string;
+actions?: (item: T) => ReactNode;
 }
 
 export function DataTable<T extends { id: string }>({
