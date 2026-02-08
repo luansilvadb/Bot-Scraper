@@ -61,15 +61,47 @@ export function useToast() {
         [showToast]
     );
 
-    return {
-        toasterId,
-        showToast,
-        success,
-        error,
-        warning,
-        info,
-        ToasterComponent: () => <Toaster toasterId={toasterId} />,
-    };
+  const showSuccess = useCallback(
+    (message: string, title?: string) => {
+      showToast({ title: title || 'Success', body: message, intent: 'success' });
+    },
+    [showToast]
+  );
+
+  const showError = useCallback(
+    (message: string, title?: string) => {
+      showToast({ title: title || 'Error', body: message, intent: 'error', timeout: 5000 });
+    },
+    [showToast]
+  );
+
+  const showWarning = useCallback(
+    (message: string, title?: string) => {
+      showToast({ title: title || 'Warning', body: message, intent: 'warning' });
+    },
+    [showToast]
+  );
+
+  const showInfo = useCallback(
+    (message: string, title?: string) => {
+      showToast({ title: title || 'Info', body: message, intent: 'info' });
+    },
+    [showToast]
+  );
+
+  return {
+    toasterId,
+    showToast,
+    showSuccess,
+    showError,
+    showWarning,
+    showInfo,
+    success,
+    error,
+    warning,
+    info,
+    ToasterComponent: () => <Toaster toasterId={toasterId} />,
+  };
 }
 
 // Global toast context for app-wide notifications

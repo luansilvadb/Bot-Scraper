@@ -1,30 +1,30 @@
 import { useState } from 'react';
 import {
-    Badge,
-    Button,
-    makeStyles,
-    shorthands,
-    tokens,
-    Input,
-    Toaster,
-    useToastController,
-    Toast,
-    ToastTitle,
-    ToastBody,
-    useId,
-    Card,
-    Title3,
-    Text,
+  Button,
+  makeStyles,
+  shorthands,
+  tokens,
+  Input,
+  Toaster,
+  useToastController,
+  Toast,
+  ToastTitle,
+  ToastBody,
+  useId,
+  Card,
+  Title3,
+  Text,
 } from '@fluentui/react-components';
 import {
-    Edit20Regular,
-    Delete20Regular,
-    Play20Regular,
-    Search20Regular,
+  Edit20Regular,
+  Delete20Regular,
+  Play20Regular,
+  Search20Regular,
 } from '@fluentui/react-icons';
 import { DataTable } from '../../components/DataTable';
 import type { Column } from '../../components/DataTable';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { StatusBadge } from '../../components/StatusBadge';
 import { CreateBotModal } from './CreateBotModal';
 import { EditBotModal } from './EditBotModal';
 import { useBots, useDeleteBot, useTriggerBot } from './api';
@@ -173,18 +173,7 @@ export function BotList() {
         });
     };
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'ACTIVE':
-                return <Badge appearance="filled" color="success">Active</Badge>;
-            case 'PAUSED':
-                return <Badge appearance="filled" color="warning">Paused</Badge>;
-            case 'ERROR':
-                return <Badge appearance="filled" color="danger">Error</Badge>;
-            default:
-                return <Badge appearance="outline">Unknown</Badge>;
-        }
-    };
+
 
     const columns: Column<Bot>[] = [
         { key: 'name', header: 'Name' },
@@ -198,11 +187,11 @@ export function BotList() {
             ),
         },
         { key: 'scheduleCron', header: 'Schedule' },
-        {
-            key: 'status',
-            header: 'Status',
-            render: (bot) => getStatusBadge(bot.status),
-        },
+{
+    key: 'status',
+    header: 'Status',
+    render: (bot) => <StatusBadge status={bot.status} />,
+  },
     ];
 
     const renderActions = (bot: Bot) => (

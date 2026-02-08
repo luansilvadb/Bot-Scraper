@@ -1,46 +1,47 @@
 import { useState } from 'react';
 import {
-    Badge,
-    Button,
-    Card,
-    Body1,
-    Caption1,
-    makeStyles,
-    shorthands,
-    tokens,
-    Select,
-    Input,
-    Checkbox,
-    Toaster,
-    useToastController,
-    Toast,
-    ToastTitle,
-    ToastBody,
-    useId,
-    Image,
-    Text,
-    Skeleton,
-    SkeletonItem,
+  Badge,
+  Button,
+  Card,
+  Body1,
+  Caption1,
+  makeStyles,
+  shorthands,
+  tokens,
+  Select,
+  Input,
+  Checkbox,
+  Toaster,
+  useToastController,
+  Toast,
+  ToastTitle,
+  ToastBody,
+  useId,
+  Image,
+  Text,
+  Skeleton,
+  SkeletonItem,
 } from '@fluentui/react-components';
 import {
-    Delete20Regular,
-    Checkmark20Regular,
-    Dismiss20Regular,
-    Search20Regular,
-    ArrowSync20Regular,
-    ChevronLeft24Regular,
-    ChevronRight24Regular,
+  Delete20Regular,
+  Checkmark20Regular,
+  Dismiss20Regular,
+  Search20Regular,
+  ArrowSync20Regular,
+  ChevronLeft24Regular,
+  ChevronRight24Regular,
 } from '@fluentui/react-icons';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { StatusBadge } from '../../components/StatusBadge';
 import {
-    useProducts,
-    useDeleteProduct,
-    useApproveProduct,
-    useRejectProduct,
-    useBulkApprove,
-    useBulkReject,
-    type Product,
-    type ProductQueryParams,
+  useProducts,
+  useDeleteProduct,
+  useApproveProduct,
+  useRejectProduct,
+  useBulkApprove,
+  useBulkReject,
+  type Product,
+  type ProductQueryParams,
 } from './api';
 
 const useStyles = makeStyles({
@@ -369,20 +370,7 @@ export function ProductList() {
         setSelectedIds(newSet);
     };
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'PENDING_APPROVAL':
-                return <Badge appearance="filled" color="warning">Pending</Badge>;
-            case 'APPROVED':
-                return <Badge appearance="filled" color="success">Approved</Badge>;
-            case 'REJECTED':
-                return <Badge appearance="filled" color="danger">Rejected</Badge>;
-            case 'POSTED':
-                return <Badge appearance="filled" color="brand">Posted</Badge>;
-            default:
-                return <Badge appearance="outline">Unknown</Badge>;
-        }
-    };
+
 
     if (error) {
         return (
@@ -580,9 +568,17 @@ export function ProductList() {
                                         </Badge>
                                     </div>
 
-                                    <div className={styles.footerContainer}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            {getStatusBadge(product.status)}
+<div className={styles.footerContainer}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <StatusBadge
+                      status={product.status}
+                      customMap={{
+                        pendingapproval: { color: 'warning', label: 'Pending' },
+                        approved: { color: 'success', label: 'Approved' },
+                        rejected: { color: 'danger', label: 'Rejected' },
+                        posted: { color: 'brand', label: 'Posted' },
+                      }}
+                    />
                                             {product.bot && (
                                                 <Caption1 style={{ opacity: 0.6 }}>
                                                     {product.bot.name}

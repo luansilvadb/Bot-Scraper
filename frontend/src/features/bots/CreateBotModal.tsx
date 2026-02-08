@@ -1,93 +1,53 @@
-import { useState } from 'react';
-import {
-    Dialog,
-    DialogTrigger,
-    DialogSurface,
-    DialogTitle,
-    DialogBody,
-    DialogContent,
-    Button,
-    Toaster,
-    useToastController,
-    Toast,
-    ToastTitle,
-    ToastBody,
-    useId,
-    makeStyles,
-} from '@fluentui/react-components';
+import { Button } from '@fluentui/react-components';
 import { Add24Regular } from '@fluentui/react-icons';
+import { useModal } from '@/hooks/useModal';
+import { useToast } from '@/hooks/useToast';
+import { FormModal } from '@/components/FormModal';
 import { BotForm } from './BotForm';
 import { useCreateBot } from './api';
 import type { CreateBotInput, UpdateBotInput } from './api';
 
-const useStyles = makeStyles({
-    surface: {
-        width: '90%',
-        maxWidth: '560px',
-    },
-});
-
 export function CreateBotModal() {
-    const [isOpen, setIsOpen] = useState(false);
-    const toasterId = useId('create-bot-toaster');
-    const { dispatchToast } = useToastController(toasterId);
+  const { isOpen, open, close } = useModal();
+  const toast = useToast();
+  const createBot = useCreateBot();
 
-    const createBot = useCreateBot();
+  const handleSubmit = (data: CreateBotInput | UpdateBotInput) => {
+    createBot.mutate(data as CreateBotInput, {
+      onSuccess: () => {
+        toast.showSuccess('The bot has been added to your list.', 'Bot created successfully!');
+        close();
+      },
+      onError: (error) => {
+        toast.showError(error.message || 'An error occurred', 'Failed to create bot');
+      },
+    });
+  };
 
-    const handleSubmit = (data: CreateBotInput | UpdateBotInput) => {
-        createBot.mutate(data as CreateBotInput, {
-            onSuccess: () => {
-                dispatchToast(
-                    <Toast>
-                        <ToastTitle>Bot created successfully!</ToastTitle>
-                        <ToastBody>The bot has been added to your list.</ToastBody>
-                    </Toast>,
-                    { intent: 'success' }
-                );
-                setIsOpen(false);
-            },
-            onError: (error) => {
-                dispatchToast(
-                    <Toast>
-                        <ToastTitle>Failed to create bot</ToastTitle>
-                        <ToastBody>{error.message || 'An error occurred'}</ToastBody>
-                    </Toast>,
-                    { intent: 'error' }
-                );
-            },
-        });
-    };
+  const handleCancel = () => {
+    close();
+  };
 
-    const handleCancel = () => {
-        setIsOpen(false);
-    };
-
-    const styles = useStyles();
-
-    return (
-        <>
-            <Toaster toasterId={toasterId} />
-            <Dialog open={isOpen} onOpenChange={(_, data) => setIsOpen(data.open)}>
-                <DialogTrigger disableButtonEnhancement>
-                    <Button appearance="primary" icon={<Add24Regular />}>
-                        Create Bot
-                    </Button>
-                </DialogTrigger>
-                <DialogSurface className={styles.surface}>
-                    <DialogBody>
-                        <DialogTitle>Create New Bot</DialogTitle>
-                        <DialogContent>
-                            <BotForm
-                                onSubmit={handleSubmit}
-                                onCancel={handleCancel}
-                                isLoading={createBot.isPending}
-                                mode="create"
-                            />
-                        </DialogContent>
-                    </DialogBody>
-                </DialogSurface>
-            </Dialog>
-        </>
-    );
+  return (
+    <>
+      <toast.ToasterComponent />
+      <Button appearance="primary" icon={<Add24Regular />} onClick={open}>
+        Create Bot
+      </Button>
+      <FormModal
+        title="Create New Bot"
+        isOpen={isOpen}
+        onClose={handleCancel}
+        size="large"
+      >
+        <BotForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={createBot.isPending}
+          mode="create"
+        />
+      </FormModal>
+    </>
+  );
 }
 

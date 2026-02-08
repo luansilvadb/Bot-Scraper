@@ -1,67 +1,49 @@
-import React, { useState } from 'react';
-import {
-    Dialog,
-    DialogTrigger,
-    DialogSurface,
-    DialogTitle,
-    DialogBody,
-    DialogContent,
-    Button,
-    makeStyles,
-} from '@fluentui/react-components';
+import React from 'react';
+import { Button } from '@fluentui/react-components';
 import { Add20Regular } from '@fluentui/react-icons';
+import { useModal } from '@/hooks/useModal';
+import { useToast } from '@/hooks/useToast';
+import { FormModal } from '@/components/FormModal';
 import { SettingForm } from './SettingForm';
 import { useUpsertSetting, type SystemSetting } from './api';
-import { useToast } from '../../hooks/useToast';
-
-const useStyles = makeStyles({
-    surface: {
-        width: '90%',
-        maxWidth: '560px',
-    },
-});
 
 export const CreateSettingModal: React.FC = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    const upsertSetting = useUpsertSetting();
-    const { showToast } = useToast();
+  const { isOpen, open, close } = useModal();
+  const toast = useToast();
+  const upsertSetting = useUpsertSetting();
 
-    const handleSubmit = async (data: SystemSetting) => {
-        try {
-            await upsertSetting.mutateAsync(data);
-            showToast({ title: 'Setting added successfully', intent: 'success' });
-            setIsOpen(false);
-        } catch (error) {
-            showToast({
-                title: 'Failed to add setting',
-                body: error instanceof Error ? error.message : undefined,
-                intent: 'error',
-            });
-        }
-    };
+  const handleSubmit = async (data: SystemSetting) => {
+    try {
+      await upsertSetting.mutateAsync(data);
+      toast.showSuccess('Setting added successfully');
+      close();
+    } catch (error) {
+      toast.showError(
+        error instanceof Error ? error.message : 'An error occurred',
+        'Failed to add setting'
+      );
+    }
+  };
 
-    const styles = useStyles();
-
-    return (
-        <Dialog open={isOpen} onOpenChange={(_, data) => setIsOpen(data.open)}>
-            <DialogTrigger disableButtonEnhancement>
-                <Button appearance="primary" icon={<Add20Regular />}>
-                    Add New Setting
-                </Button>
-            </DialogTrigger>
-            <DialogSurface className={styles.surface}>
-                <DialogBody>
-                    <DialogTitle>Add System Setting</DialogTitle>
-                    <DialogContent>
-                        <SettingForm
-                            mode="create"
-                            onSubmit={handleSubmit}
-                            onCancel={() => setIsOpen(false)}
-                            isLoading={upsertSetting.isPending}
-                        />
-                    </DialogContent>
-                </DialogBody>
-            </DialogSurface>
-        </Dialog>
-    );
+  return (
+    <>
+      <toast.ToasterComponent />
+      <Button appearance="primary" icon={<Add20Regular />} onClick={open}>
+        Add New Setting
+      </Button>
+      <FormModal
+        title="Add System Setting"
+        isOpen={isOpen}
+        onClose={close}
+        size="medium"
+      >
+        <SettingForm
+          mode="create"
+          onSubmit={handleSubmit}
+          onCancel={close}
+          isLoading={upsertSetting.isPending}
+        />
+      </FormModal>
+    </>
+  );
 };
