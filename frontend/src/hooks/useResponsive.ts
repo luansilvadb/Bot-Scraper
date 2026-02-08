@@ -74,29 +74,14 @@ export const useMediaQuery = (query: string): boolean => {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(query);
-    
+
     const handleChange = (event: MediaQueryListEvent) => {
       setMatches(event.matches);
     };
-    
+
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [query]);
 
   return matches;
-};
-
-export const useIsMobile = (): boolean => {
-  const { isMobile } = useResponsive();
-  return isMobile;
-};
-
-export const useIsTablet = (): boolean => {
-  const { isTablet } = useResponsive();
-  return isTablet;
-};
-
-export const useIsDesktop = (): boolean => {
-  const { isDesktop } = useResponsive();
-  return isDesktop;
 };

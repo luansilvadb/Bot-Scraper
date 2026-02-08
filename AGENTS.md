@@ -248,3 +248,17 @@ export interface LocalWorker {
 - Use `.env` files (never commit secrets)
 - Document all env vars in README
 - Validate env vars at startup
+
+---
+
+## Active Technologies
+
+- TypeScript 5.x + React 18.x + Fluent UI (019-frontend-refactor)
+- Vite + React Query + Axios (019-frontend-refactor)
+
+## Recent Changes
+
+- 019-frontend-refactor: Added custom hooks (useForm, useModal, useEntityApi) and reusable components (FormModal, FormSection, CardSkeleton, StatusBadge)
+- 019-frontend-refactor: Target 15% LoC reduction through component abstraction
+
+**Last updated**: 2025-02-08
